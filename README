@@ -1,0 +1,2 @@
+Java2JS is a Java bytecode to JavaScript compiler. It will take any Java bytecode (.class file) and convert it into equivalent JavaScript source code. Java2JS relies on BCEL (ByteCode Editing Library) for its classfile parsing and manipulation. Much more detailed info is found in the docs/ folder.
+Enjoy!
