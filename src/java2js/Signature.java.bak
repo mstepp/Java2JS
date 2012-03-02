@@ -1,0 +1,138 @@
+package java2js;
+
+import java.util.*;
+
+public class Signature {
+    private final ObjectType formalClassBound;
+    private final List<ObjectType> formalInterfaceBounds = new ArrayList<ObjectType>();
+    private ObjectType
+    
+
+
+    public static Signature parse(String str) {
+	
+
+    }
+
+    private static FormalTypeParameter parseFormalTypeParameter(Buffer buffer) {
+	String identifier = parseIdentifier(buffer);
+	TypeSignature classBound = parseClassBound(buffer);
+	List<TypeSignature> interfaceBounds = new ArrayList<TypeSignature>();
+	while (buffer.matchesN(":")) {
+	    interfaceBounds.add(parseClassBound(buffer));
+	}
+	return new FormalTypeParameter(identifier, classBound, interfaceBounds);
+    }
+
+    private static TypeSignature parseClassBound(Buffer buffer) {
+	buffer.assertN(":");
+	return parseFieldTypeSignature(buffer);
+    }
+
+    private static TypeSignature parseFieldTypeSignature(Buffer buffer) {
+	if (buffer.matchesN("L")) {
+	    return parseClassTypeSignature(buffer);
+	} else if (buffer.matchesN("[")) {
+	    return parseArrayTypeSignature(buffer);
+	} else if (buffer.matchesN("T")) {
+	    return parseTypeVariableSignature(buffer);
+	} else {
+	    throw new RuntimeException("Expecting L|[|T");
+	}
+    }
+
+    private static TypeSignature parseClassTypeSignature(Buffer buffer) {
+	buffer.assertN("L");
+	List<String> qualified = new ArrayList<String>();
+	int last = buffer.getIndex();
+	while (true) {
+	    String piece = parseIdentifier(buffer);
+	    if (buffer.matchesN("/")) {
+		qualified.add(piece);
+		buffer.next();
+		last = buffer.getIndex();
+	    } else {
+		buffer.setIndex(last);
+		break;
+	    }
+	}
+	
+
+	List<TypeArgument> typeArguments = new ArrayList<TypeArgument>();
+	
+	return null;
+    }
+
+    private static TypeSignature parseTypeVariableSignature(Buffer buffer) {
+	buffer.assertN("T");
+	String identifier = parseIdentifier(buffer);
+	buffer.assertN(";");
+	return new TypeVariableTypeSignature(identifier);
+    }
+
+    private static String parseIdentifier(Buffer buffer) {
+	StringBuilder result = new StringBuilder();
+	while (!buffer.atEOF() && isIdentifierChar(buffer.peek())) {
+	    result.append(buffer.next());
+	}
+	return result.toString();
+    }
+
+    private static boolean isIdentifierChar(char c) {
+	if (('A' <= c && c <= 'Z') ||
+	    ('a' <= c && c <= 'z') ||
+	    ('0' <= c && c <= '9')) {
+	    return true;
+	} else {
+	    switch (c) {
+	    case '_':
+	    case '#':
+		return true;
+	    default:
+		return false;
+	    }
+	}
+    }
+
+    private static class Buffer {
+	private final String str;
+	private final int length;
+	private int index = 0;
+
+	Buffer(String _str) {
+	    this.str = _str;
+	    this.length = this.str.length();
+	}
+	public boolean atEOF() {
+	    return this.index == this.length;
+	}
+	public boolean hasN(int n) {
+	    return this.index+n <= this.length;
+	}
+	public char peek() {
+	    assertN(1);
+	    return str.charAt(this.index);
+	}
+	public char next() {
+	    assertN(1);
+	    return str.charAt(this.index++);
+	}
+	public String nextN(int n) {
+	    if (!hasN(n))
+		throw new RuntimeException("Premature EOF");
+	    String result = this.str.substring(this.index, this.index+n);
+	    this.index += n;
+	    return result;
+	}
+	public boolean matchesN(String match) {
+	    return this.hasN(match.length()) && str.substring(this.index, this.index + match.length()).equals(match);
+	}
+	public void assertN(String match) {
+	    if (!matchesN(match))
+		throw new RuntimeException("No match for string \"" + match + "\"");
+	    this.index += match.length();
+	}
+	public int getIndex() {return this.index;}
+	public void setIndex(int index) {this.index = index;}
+    }
+}
