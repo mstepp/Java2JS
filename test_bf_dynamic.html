@@ -1,0 +1,41 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head> 
+	 <title>Testing</title>
+	 <script type="text/javascript" src="src/util.js"></script>
+	 <script type="text/javascript" src="src/native.js"></script>
+	 <script type="text/javascript" src="src/reflect_native.js"></script>
+	 <script type="text/javascript" src="src/int.js"></script>
+	 <script type="text/javascript" src="src/long.js"></script>
+	 <script type="text/javascript" src="src/object.js"></script>
+	 <script type="text/javascript" src="src/arrayobject.js"></script>
+	 <script type="text/javascript" src="src/classloader.js"></script>
+	 <script type="text/javascript" src="src/defaultclassloader.js"></script>
+	 <script type="text/javascript" src="src/bfnative.js"></script>
+	 <script type="text/javascript">
+	   window.onload = function() {
+        var classloader = new DefaultURLClassLoader("http://goto.ucsd.edu/~mstepp/java2js_git/classloader.php");
+        classloader.setDocument(document);
+        Util.setClassLoader(classloader);
+
+        document.getElementById("button").onclick = function() {
+	       var program = document.getElementById("program").value;
+	       program = Util.resolveClass("bf.Parser").method_parse_Lbf$DCommandE_Ljava$Dlang$DStringE_(Util.js2java_string(program));
+	       var jsio = Util.resolveClass("bf.JSIO").newInstance();
+	       var input = document.getElementById("input").value;
+	       jsio.init_Ljava$Dlang$DStringELjava$Dlang$DStringE_(Util.js2java_string(input), Util.js2java_string("output"));
+	       var state = Util.resolveClass("bf.State").newInstance();
+          state.init_Lbf$DIOEI_(jsio, new Integer(1000));
+          var interpreter = Util.resolveClass("bf.Interpreter").newInstance();
+	       interpreter.init_Lbf$DCommandE_(program);
+	       interpreter.method_interpret_V_Lbf$DStateE_(state);
+	     };
+	   };
+	 </script>
+  </head>
+  <body>
+	 <div><textarea id="program" rows="10" cols="50"></textarea></div>
+	 <div><textarea id="input" rows="5" cols="50"></textarea></div>
+	 <div><textarea id="output" rows="5" cols="50"></textarea></div>
+	 <div><input type="button" value="Go" id="button"/></div>
+  </body>
+</html>

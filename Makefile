@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-JAVA_SRC := $(wildcard src/java2js/*.java src/java2js/test/*.java src/heart/*.java src/bf/*.java)
+JAVA_SRC := $(wildcard src/java2js/*.java src/java2js/test/*.java src/heart/*.java src/bf/*.java src/tetris/*.java src/lambda/*.java)
 JAVA_CLASS := $(patsubst src/%.java,bin/%.class,$(JAVA_SRC))
 JS_LIBRARY := int.js arrayobject.js util.js long.js
 SPECIAL_CLASSES := 'java/lang/String$$CaseInsensitiveComparator'
@@ -18,8 +18,9 @@ js/%.js:	$(JAVA_CLASS)
 	CLASSNAME="$${CLASSNAME%.js}" ; \
 	CLASSNAME="$${CLASSNAME#js/}" ; \
 	CLASSNAME="$${CLASSNAME//\$$/\$$\$$}" ; \
-	mkdir -p `dirname '$@'` ; \
-	$(MAKE) -s SHELL=$(SHELL) "CLASS=$$CLASSNAME.class" compile > '$@' ;
+	mkdir -m 0777 -p `dirname '$@'` ; \
+	$(MAKE) -s SHELL=$(SHELL) "CLASS=$$CLASSNAME.class" compile > '$@' ; \
+	chmod a+r '$@' ;
 
 # needs LISTFILE
 compilefile:
@@ -84,7 +85,7 @@ test_arithmetic:
 
 
 compile_factorial:
-	$(MAKE) -s OUTPUT=test.html LISTFILE=packages/factorial compilefile ;
+	$(MAKE) -s LISTFILE=packages/factorial compilefile ;
 	chmod -R a+r js/ ;
 	find js/ -type d -exec chmod a+rx {} \;
 
@@ -100,7 +101,7 @@ test_factorial:
 
 
 compile_heart:
-	$(MAKE) -s OUTPUT=test.html LISTFILE=packages/heart compilefile ;
+	$(MAKE) -s LISTFILE=packages/heart compilefile ;
 	chmod -R a+r js/ ;
 	find js/ -type d -exec chmod a+rx {} \;
 
@@ -136,7 +137,7 @@ testbf1:	java
 
 
 compile_bf:
-	$(MAKE) -s OUTPUT=test.html LISTFILE=packages/bf compilefile ;
+	$(MAKE) -s LISTFILE=packages/bf compilefile ;
 	chmod -R a+r js/ ;
 	find js/ -type d -exec chmod a+rx {} \;
 
@@ -169,6 +170,32 @@ test_bf:
 	echo '</html>' >> test.html ;
 
 
+compile_lambda:
+	$(MAKE) -s LISTFILE=packages/lambda compilefile ;
+	chmod -R a+r js/ ;
+	find js/ -type d -exec chmod a+rx {} \;
+
+test_lambda:
+	$(MAKE) -s OUTPUT=test.html LISTFILE=packages/lambda testheader ;
+	echo '    <script type="text/javascript" src="src/lambdanative.js"></script>' >> test.html ;
+	echo '    <script type="text/javascript">' >> test.html ;
+	echo '       window.onload = function() {' >> test.html ;
+	echo '         var output = document.getElementById("output");' >> test.html ;
+	echo '         document.getElementById("button").onclick = function() {' >> test.html ;
+	echo '           var jsprinter = Util.resolveClass("lambda.JSPrinter").newInstance();' >> test.html ;
+	echo '           jsprinter.init__();' >> test.html ;
+	echo '           jsprinter.textarea = output;' >> test.html ;
+	echo '           output.value += Util.java2js_string(Util.resolveClass("lambda.Functions").field_ISZ$$ERO_Llambda$$D$$ExpressionE.method_dump_V_Llambda$$DPrinterE_(jsprinter);' >> test.html ;
+#	echo '           Util.resolveClass("lambda.Main").method_run_V_Llambda$$DPrinterE_(jsprinter);' >> test.html ;
+	echo '         };' >> test.html ;
+	echo '       };' >> test.html ;
+	echo '    </script>' >> test.html ;
+	echo '  </head>' >> test.html ;
+	echo '  <body>' >> test.html ;
+	echo '    <div><textarea id="output" rows="10" cols="50"></textarea></div>' >> test.html ;
+	echo '    <div><input type="button" value="Go" id="button"/></div>' >> test.html ;
+	echo '  </body>' >> test.html ;
+	echo '</html>' >> test.html ;
 
 clean:
 	rm -rf bin/* src/*~ src/java2js/*~ src/java2js/test/*~ *~ js/* test.html ;

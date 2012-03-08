@@ -15,12 +15,12 @@ public class DefaultNameMunger implements NameMunger {
          case 'L': // used to indicate start of classname
          case 'E': // used to indicate end of classname
             result.append('$').append(c);
-            break;
+         break;
 
          case '.':
          case '/':
             result.append("$D");
-            break;
+         break;
 
          default:
             result.append(c);
