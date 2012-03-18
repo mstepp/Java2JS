@@ -3,7 +3,7 @@ package java2js;
 import org.apache.bcel.generic.*;
 import org.apache.bcel.classfile.*;
 
-public class InstructionCompiler {
+public class InstructionCompilerCPS {
    private final Printer out;
    private final ClassGen classgen;
    private final ConstantPoolGen cpg;
@@ -11,10 +11,10 @@ public class InstructionCompiler {
    private final NameMunger munger;
    private final Function<InstructionHandle,Integer> h2i;
 
-   public InstructionCompiler(Printer _out, 
-                              ClassGen _classgen,
-                              NameMunger _munger,
-                              Function<InstructionHandle,Integer> _h2i) {
+   public InstructionCompilerCPS(Printer _out, 
+                                 ClassGen _classgen,
+                                 NameMunger _munger,
+                                 Function<InstructionHandle,Integer> _h2i) {
       this.out = _out;
       this.classgen = _classgen;
       this.h2i = _h2i;
@@ -38,29 +38,11 @@ public class InstructionCompiler {
    private void comment(String message, Object... args) {
       println("// " + message, args);
    }
-   private void pop(String name, Object... args) {
-      println("var %s = stack.pop();", String.format(name, args));
+   private void inst(String message, Object... args) {
+      println("last = %s;", String.format(message, args));
    }
-   private void pop2(String name, Object... args) {
-      println("var %s = stack.pop(); stack.pop();", String.format(name, args));
-   }
-   private void push(String value, Object... args) {
-      println("stack.push(%s);", String.format(value, args));
-   }
-   private void push2(String value, Object... args) {
-      result(value, args);
-      println("stack.push(result); stack.push(result);");
-   }
-   private void result(String result, Object... args) {
-      println("var result = %s;", String.format(result, args));
-   }
-
-   private void assertNonNull(String value) {
-      println("Util.assertWithException((%s) != null, %s);", value, Compiler.resolve("java.lang.NullPointerException"));
-   }
-
-   private void assertWithException(String test, String exceptionName) {
-      println("Util.assertWithException((%s), %s);", test, Compiler.resolve(exceptionName));
+   private void di(String name) {
+      inst("%s(last, exc)", name);
    }
 
    private String makeTypeObject(Type type) {
@@ -93,183 +75,115 @@ public class InstructionCompiler {
       Instruction inst = handle.getInstruction();
       comment(inst.toString());
       if (inst instanceof ACONST_NULL) {
-         println("stack.push(null);");
+         di("aconst_null");
       } 
       else if (inst instanceof DADD) {
-         pop2("rhs");
-         pop2("lhs");
-         push2("lhs + rhs");
+         di("dadd");
       } 
       else if (inst instanceof DDIV) {
-         pop2("rhs");
-         pop2("lhs");
-         push2("lhs / rhs");
+         di("ddiv");
       }
       else if (inst instanceof DMUL) {
-         pop2("rhs");
-         pop2("lhs");
-         push2("lhs * rhs");
+         di("dmul");
       }
       else if (inst instanceof DNEG) {
-         pop2("value");
-         push2("-value");
+         di("dneg");
       }
       else if (inst instanceof DREM) {
-         pop2("rhs");
-         pop2("lhs");
-         push2("lhs % rhs");
+         di("drem");
       }
       else if (inst instanceof DSUB) {
-         pop2("rhs");
-         pop2("lhs");
-         push2("lhs - rhs");
+         di("dsub");
       }
       else if (inst instanceof FADD) {
-         pop("rhs");
-         pop("lhs");
-         push("lhs + rhs");
+         di("fadd");
       }
       else if (inst instanceof FDIV) {
-         pop("rhs");
-         pop("lhs");
-         push("lhs / rhs");
+         di("fdiv");
       }
       else if (inst instanceof FMUL) {
-         pop("rhs");
-         pop("lhs");
-         push("lhs * rhs");
+         di("fmul");
       }
       else if (inst instanceof FNEG) {
-         pop("value");
-         push("-value");
+         di("fneg");
       }
       else if (inst instanceof FREM) {
-         pop("rhs");
-         pop("lhs");
-         push("lhs % rhs");
+         di("frem");
       }
       else if (inst instanceof FSUB) {
-         pop("rhs");
-         pop("lhs");
-         push("lhs - rhs");
+         di("fsub");
       }
       else if (inst instanceof IADD) {
-         pop("rhs");
-         pop("lhs");
-         push("lhs.add(rhs)");
+         di("iadd");
       }
       else if (inst instanceof IAND) {
-         pop("rhs");
-         pop("lhs");
-         push("lhs.and(rhs)");
+         di("iand");
       }
       else if (inst instanceof IDIV) {
-         pop("rhs");
-         pop("lhs");
-         push("lhs.divmod(rhs).div");
+         di("idiv");
       }
       else if (inst instanceof IMUL) {
-         pop("rhs");
-         pop("lhs");
-         push("lhs.multiply(rhs)");
+         di("imul");
       }
       else if (inst instanceof INEG) {
-         pop("value");
-         push("value.negate()");
+         di("ineg");
       }
       else if (inst instanceof IOR) {
-         pop("rhs");
-         pop("lhs");
-         push("lhs.or(rhs)");
+         di("ior");
       }
       else if (inst instanceof IREM) {
-         pop("rhs");
-         pop("lhs");
-         push("lhs.divmod(rhs).mod");
+         di("irem");
       }
       else if (inst instanceof ISHL) {
-         pop("rhs");
-         pop("lhs");
-         push("lhs.shl(rhs)");
+         di("ishl");
       }
       else if (inst instanceof ISHR) {
-         pop("rhs");
-         pop("lhs");
-         push("lhs.shr(rhs)");
+         di("ishr");
       }
       else if (inst instanceof ISUB) {
-         pop("rhs");
-         pop("lhs");
-         push("lhs.subtract(rhs)");
+         di("isub");
       }
       else if (inst instanceof IUSHR) {
-         pop("rhs");
-         pop("lhs");
-         push("lhs.ushr(rhs)");
+         di("iushr");
       }
       else if (inst instanceof IXOR) {
-         pop("rhs");
-         pop("lhs");
-         push("lhs.xor(rhs)");
+         di("ixor");
       }
       else if (inst instanceof LADD) {
-         pop2("rhs");
-         pop2("lhs");
-         push2("lhs.add(rhs)");
+         di("ladd");
       }
       else if (inst instanceof LAND) {
-         pop2("rhs");
-         pop2("lhs");
-         push2("lhs.and(rhs)");
+         di("land");
       }
       else if (inst instanceof LDIV) {
-         pop2("rhs");
-         pop2("lhs");
-         push2("lhs.divmod(rhs).div");
+         di("ldiv");
       }
       else if (inst instanceof LMUL) {
-         pop2("rhs");
-         pop2("lhs");
-         push2("lhs.multiply(rhs)");
+         di("lmul");
       }
       else if (inst instanceof LNEG) {
-         pop2("value");
-         push2("value.negate()");
+         di("lneg");
       }
       else if (inst instanceof LOR) {
-         pop2("rhs");
-         pop2("lhs");
-         push2("lhs.or(rhs)");
+         di("lor");
       }
       else if (inst instanceof LREM) {
-         pop2("rhs");
-         pop2("lhs");
-         push2("lhs.divmod(rhs).mod");
+         di("lrem");
       }
       else if (inst instanceof LSHL) {
-         pop("rhs");
-         pop2("lhs");
-         push2("lhs.shl(rhs)");
+         di("lshl");
       }
       else if (inst instanceof LSHR) {
-         pop("rhs");
-         pop2("lhs");
-         push2("lhs.shr(rhs)");
+         di("lshr");
       }
       else if (inst instanceof LSUB) {
-         pop2("rhs");
-         pop2("lhs");
-         push2("lhs.subtract(rhs)");
+         di("lsub");
       }
       else if (inst instanceof LUSHR) {
-         pop("rhs");
-         pop2("lhs");
-         push2("lhs.ushr(rhs)");
+         di("lushr");
       }
       else if (inst instanceof LXOR) {
-         pop2("rhs");
-         pop2("lhs");
-         push2("lhs.xor(rhs)");
+         di("lxor");
       }
       else if (inst instanceof AALOAD ||
                inst instanceof BALOAD ||
@@ -277,17 +191,11 @@ public class InstructionCompiler {
                inst instanceof FALOAD ||
                inst instanceof IALOAD ||
                inst instanceof SALOAD) {
-         pop("index");
-         pop("array");
-         assertNonNull("array");
-         push("array.get(index.toJS())");
+         di("aload");
       }
       else if (inst instanceof DALOAD ||
                inst instanceof LALOAD) {
-         pop("index");
-         pop("array");
-         assertNonNull("array");
-         push2("array.get(index.toJS())");
+         di("aload2");
       }
       else if (inst instanceof AASTORE ||
                inst instanceof BASTORE ||
@@ -295,147 +203,107 @@ public class InstructionCompiler {
                inst instanceof FASTORE ||
                inst instanceof IASTORE ||
                inst instanceof SASTORE) {
-         pop("value");
-         pop("index");
-         pop("array");
-         assertNonNull("array");
-         println("array.set(index.toJS(), value);");
+         di("astore");
       }
       else if (inst instanceof DASTORE ||
                inst instanceof LASTORE) {
-         pop2("value");
-         pop("index");
-         pop("array");
-         assertNonNull("array");
-         println("array.set(index.toJS(), value);");
+         di("astore2");
       }
       else if (inst instanceof ARRAYLENGTH) {
-         pop("array");
-         assertNonNull("array");
-         push("new Integer(array.arraylength())");
+         di("arraylength");
       }
       else if (inst instanceof ATHROW) {
-         pop("value");
-         assertNonNull("value");
-         println("throw value;");
+         di("athrow");
       }
       else if (inst instanceof BIPUSH) {
-         push("new Integer(%s)", String.valueOf(((BIPUSH)inst).getValue().intValue()));
+         inst("bipush(%s, exc)", String.valueOf(((BIPUSH)inst).getValue().intValue()));
       }
       else if (inst instanceof GotoInstruction) {
-         int index = h2i.get(((GotoInstruction)inst).getTarget());
-         println("blockIndex = %s;", index);
+         println("last = frame[\"goto\"](succs[0], exc);");
       }
       else if (inst instanceof IfInstruction) {
-         int tIndex = h2i.get(((IfInstruction)inst).getTarget());
-         int fIndex = h2i.get(handle.getNext());
-         compileIfInstruction(tIndex, fIndex, (IfInstruction)inst);
+         compileIfInstruction((IfInstruction)inst);
       }
       else if (inst instanceof JsrInstruction) {
-         int targetIndex = h2i.get(((JsrInstruction)inst).getTarget());
-         int fallThroughIndex = h2i.get(handle.getNext());
-         println("stack.push({address:%s});", fallThroughIndex);
-         println("blockIndex = %s;", targetIndex);
+         inst("jsr(succs[0], succs[1], exc)");
       }
       else if (inst instanceof Select) {
+         println("last = function() {");
          Select select = (Select)inst;
-         println("switch(stack.pop().bits | 0) {");
+         println("   switch(frame.POP().bits | 0) {");
          int[] matches = select.getMatchs();
          InstructionHandle[] targets = select.getTargets();
-         for (int i = 0; i < matches.length; i++) {
-            println("  case %s: blockIndex = %s; break;", matches[i], h2i.get(targets[i]));
+         int i;
+         for (i = 0; i < matches.length; i++) {
+            println("      case %s: return succs[%s];", matches[i], i);
          }
-         println("  default: blockIndex = %s; break;", h2i.get(select.getTarget()));
-         println("}");
+         println("      default: return succs[%s];", i);
+         println("   }");
+         println("};");
       }
       else if (inst instanceof D2F) {
-         pop2("value");
-         push("value");
+         di("d2f");
       }
       else if (inst instanceof D2I) {
-         pop2("value");
-         push("Util.d2i(value)");
+         di("d2i");
       }
       else if (inst instanceof F2D) {
-         pop("value");
-         push2("value");
+         di("f2d");
       }
       else if (inst instanceof F2I) {
-         pop("value");
-         push("Util.d2i(value)");
+         di("f2i");
       }
       else if (inst instanceof I2B) {
-         pop("value");
-         push("value.i2b()");
+         di("i2b");
       }
       else if (inst instanceof I2C) {
-         pop("value");
-         push("value.i2c()");
+         di("i2c");
       }
       else if (inst instanceof I2D) {
-         pop("value");
-         push2("value.i2d()");
+         di("i2d");
       }
       else if (inst instanceof I2F) {
-         pop("value");
-         push("value.i2d()");
+         di("i2f");
       }
       else if (inst instanceof I2L) {
-         pop("value");
-         push2("value.i2l()");
+         di("i2l");
       }
       else if (inst instanceof I2S) {
-         pop("value");
-         push("value.i2s()");
+         di("i2s");
       }
       else if (inst instanceof L2I) {
-         pop2("value");
-         push("value.l2i()");
+         di("l2i");
       }
       else if (inst instanceof D2L) {
-         pop2("value");
-         push2("Util.d2l(value)");
+         di("d2l");
       }
       else if (inst instanceof F2L) {
-         pop2("value");
-         push("Util.d2l(value)");
+         di("f2l");
       }
       else if (inst instanceof L2D) {
-         pop2("value");
-         push2("value.l2d()");
+         di("l2d");
       } 
       else if (inst instanceof L2F) {
-         pop2("value");
-         push("Util.l2d(value)");
+         di("l2f");
       }
       else if (inst instanceof ANEWARRAY) {
          Type elementType = ((ANEWARRAY)inst).getType(cpg);
-         pop("length");
-         assertWithException("!length.isNegative()", "java.lang.NegativeArraySizeException");
-         push("Util.multianewarray([length], new ArrayType(%s))", makeTypeObject(elementType));
+         inst("anwearray(\"%s\", last, exc)", elementType.toString());
       }
       else if (inst instanceof CHECKCAST) {
-         pop("obj");
-         println("var check = Util.instance_of(obj, %s);", makeTypeObject(((CHECKCAST)inst).getType(cpg)));
-         println("Util.assertWithException(check, %s);", Compiler.resolve("java.lang.ClassCastException"));
-         push("obj");
+         String typename = ((CHECKCAST)inst).getType(cpg).toString();
+         inst("checkcast(\"%s\", last, exc)", typename);
       }
       else if (inst instanceof GETFIELD) {
          GETFIELD getfield = (GETFIELD)inst;
          Type type = getfield.getFieldType(cpg);
          String classname = getfield.getReferenceType(cpg).toString();
          String fieldname = getfield.getFieldName(cpg);
-         if (type.equals(Type.DOUBLE) ||
-             type.equals(Type.LONG)) {
-            pop("obj");
-            assertNonNull("obj");
-            String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
-            push2("obj.%s", munged);
+         String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
+         if (type.equals(Type.DOUBLE) || type.equals(Type.LONG)) {
+            inst("getfield(\"%s\", true, last, exc)", munged);
          } else {
-            pop("obj");
-            assertNonNull("obj");
-            String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
-            push("obj.%s", munged);
+            inst("getfield(\"%s\", false, last, exc)", munged);
          }
       }
       else if (inst instanceof GETSTATIC) {
@@ -443,16 +311,11 @@ public class InstructionCompiler {
          Type type = getstatic.getFieldType(cpg);
          String classname = getstatic.getReferenceType(cpg).toString();
          String fieldname = getstatic.getFieldName(cpg);
-         println("Util.initialize(%s);", Compiler.resolve(classname));
-         if (type.equals(Type.DOUBLE) ||
-             type.equals(Type.LONG)) {
-            String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
-            // don't need resolve because we already init'ed
-            push2("Packages.%s().%s", classname, munged);
+         String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
+         if (type.equals(Type.DOUBLE) || type.equals(Type.LONG)) {
+            inst("getstatic(\"%s\", \"%s\", true, last, exc)", classname, munged);
          } else {
-            String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
-            // don't need resolve because we already init'ed
-            push("Packages.%s().%s", classname, munged);
+            inst("getstatic(\"%s\", \"%s\", false, last, exc)", classname, munged);
          }
       }
       else if (inst instanceof PUTFIELD) {
@@ -460,19 +323,11 @@ public class InstructionCompiler {
          Type type = putfield.getFieldType(cpg);
          String classname = putfield.getReferenceType(cpg).toString();
          String fieldname = putfield.getFieldName(cpg);
-         if (type.equals(Type.DOUBLE) ||
-             type.equals(Type.LONG)) {
-            pop2("value");
-            pop("obj");
-            assertNonNull("obj");
-            String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
-            println("obj.%s = value;", munged);
+         String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
+         if (type.equals(Type.DOUBLE) || type.equals(Type.LONG)) {
+            inst("putfield(\"%s\", true, last, exc)", munged);
          } else {
-            pop("value");
-            pop("obj");
-            assertNonNull("obj");
-            String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
-            println("obj.%s = value;", munged);
+            inst("putfield(\"%s\", false, last, exc)", munged);
          }
       }
       else if (inst instanceof PUTSTATIC) {
@@ -480,21 +335,16 @@ public class InstructionCompiler {
          Type type = putstatic.getFieldType(cpg);
          String classname = putstatic.getReferenceType(cpg).toString();
          String fieldname = putstatic.getFieldName(cpg);
-         println("Util.initialize(%s);", Compiler.resolve(classname));
-         if (type.equals(Type.DOUBLE) ||
-             type.equals(Type.LONG)) {
-            pop2("value");
-            String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
-            // don't need resolve because we already init'ed
-            println("Packages.%s().%s = value;", classname, munged);
+         String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
+         if (type.equals(Type.DOUBLE) || type.equals(Type.LONG)) {
+            inst("putstatic(\"%s\", \"%s\", true, last, exc)", classname, munged);
          } else {
-            pop("value");
-            String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
-            // don't need resolve because we already init'ed
-            println("Packages.%s().%s = value;", classname, munged);
+            inst("putstatic(\"%s\", \"%s\", false, last, exc)", classname, munged);
          }
       }
       else if (inst instanceof INVOKESPECIAL) {
+         // TODO
+         /*
          InvokeInstruction invoke = (InvokeInstruction)inst;
          Type[] args = invoke.getArgumentTypes(cpg);
          Type returnType = invoke.getReturnType(cpg);
@@ -558,9 +408,12 @@ public class InstructionCompiler {
          } else if (!returnType.equals(Type.VOID)) {
             push("result");
          }
+         */
       }
       else if (inst instanceof INVOKEINTERFACE ||
                inst instanceof INVOKEVIRTUAL) {
+         /*
+         // TODO
          InvokeInstruction invoke = (InvokeInstruction)inst;
          Type[] args = invoke.getArgumentTypes(cpg);
          Type returnType = invoke.getReturnType(cpg);
@@ -606,8 +459,11 @@ public class InstructionCompiler {
          } else if (!returnType.equals(Type.VOID)) {
             push("result");
          }
+         */
       }
       else if (inst instanceof INVOKESTATIC) {
+         /*
+         // TODO
          InvokeInstruction invoke = (InvokeInstruction)inst;
          Type[] args = invoke.getArgumentTypes(cpg);
          Type returnType = invoke.getReturnType(cpg);
@@ -639,19 +495,18 @@ public class InstructionCompiler {
          } else if (!returnType.equals(Type.VOID)) {
             push("result");
          }
+         */
       }
       else if (inst instanceof INSTANCEOF) {
          Type type = ((INSTANCEOF)inst).getType(cpg);
-         String typeString = makeTypeObject(type);
-         pop("obj");
-         push("Util.instance_of(obj, %s) ? Integer.ONE : Integer.ZERO", typeString);
+         println("last = frame[\"instanceof\"](\"%s\", last, exc);", type.toString());
       }
       else if (inst instanceof LDC) {
          Object value = ((LDC)inst).getValue(cpg);
          if (value instanceof String) {
-            push("Util.js2java_string(\"%s\")", escapeLiteralString((String)value));
+            inst("ldc_string(\"%s\", last, exc)", escapeLiteralString((String)value));
          } else if (value instanceof Integer) {
-            push("new Integer(%s)", value);
+            inst("ldc_value(new Integer(%s), last, exc)", value);
          } else if (value instanceof ConstantClass) {
             String classname = ((ConstantClass)value).getBytes(cpg.getConstantPool());
             if (classname.startsWith("[")) {
@@ -659,9 +514,9 @@ public class InstructionCompiler {
                Type type = Type.getType(classname);
                classname = type.toString();
             }
-            push("Util.getClassByName(\"%s\")", escapeLiteralString(classname.replaceAll("/", ".")));
+            inst("ldc_class(\"%s\", last, exc)", escapeLiteralString(classname.replaceAll("/", ".")));
          } else {
-            push(value.toString());
+            inst("ldc_value(%s, last, exc)", value.toString());
          }
       }
       else if (inst instanceof LDC2_W) {
@@ -670,9 +525,9 @@ public class InstructionCompiler {
             long lvalue = ((Long)value).longValue();
             int low = (int)(lvalue & 0xFFFFFFFF);
             int high = (int)((lvalue>>>32) & 0xFFFFFFFF);
-            push2("new Long(%s, %s)", low, high);
+            inst("ldc2_w(new Long(%s, %s), last, exc)", low, high);
          } else if (value instanceof Double) {
-            push2(value.toString());
+            inst("ldc2_w(%s, last, exc)", value.toString());
          } else {
             throw new CompilationException("Unsupported type: " + value.getClass());
          }
@@ -681,260 +536,193 @@ public class InstructionCompiler {
          MULTIANEWARRAY multi = (MULTIANEWARRAY)inst;
          ArrayType type = (ArrayType)multi.getType(cpg);
          int ndims = multi.getDimensions();
-         println("var dims = new Array(%s);", ndims);
-         for (int i = ndims-1; i >= 0; i--) {
-            println("dims[%s] = stack.pop();", i);
-         }
-         push("Util.multianewarray(dims, %s);", makeTypeObject(type));
+         inst("multianewarray(%s, \"%s\", last, exc)", ndims, type.toString());
       }
       else if (inst instanceof NEW) {
          NEW newinst = (NEW)inst;
          ObjectType type = (ObjectType)newinst.getType(cpg);
-         push("%s.newInstance()", Compiler.resolve(type.getClassName()));
+         println("last = frame[\"new\"](\"%s\", last, exc);", type.getClassName());
       }
       else if (inst instanceof DCMPG) {
-         pop2("rhs");
-         pop2("lhs");
-         push("Util.dcmpg(lhs, rhs)");
+         di("dcmpg");
       } 
       else if (inst instanceof FCMPG) {
-         pop("rhs");
-         pop("lhs");
-         push("Util.dcmpg(lhs, rhs)");
+         di("fcmpg");
       } 
       else if (inst instanceof DCMPL) {
-         pop2("rhs");
-         pop2("lhs");
-         push("Util.dcmpl(lhs, rhs)");
+         di("dcmpl");
       } 
       else if (inst instanceof FCMPL) {
-         pop("rhs");
-         pop("lhs");
-         push("Util.dcmpl(lhs, rhs)");
+         di("fcmpl");
       }
       else if (inst instanceof DCONST) {
          double value = ((DCONST)inst).getValue().doubleValue();
-         push2("%s", value);
+         inst("dconst(%s, last, exc)", value);
       }
       else if (inst instanceof FCONST) {
          double value = ((FCONST)inst).getValue().doubleValue();
-         push("%s", value);
+         inst("fconst(%s, last, exc)", value);
       }
       else if (inst instanceof ICONST) {
          int value = ((ICONST)inst).getValue().intValue();
-         push("new Integer(%s)", value);
+         inst("iconst(%s, last, exc)", value);
       }
       else if (inst instanceof LCMP) {
-         pop2("rhs");
-         pop2("lhs");
-         push("new Integer(lhs.compareTo(rhs))");
+         di("lcmp");
       }
       else if (inst instanceof LCONST) {
          long value = ((LCONST)inst).getValue().longValue();
+         String svalue;
          if (value == 0L)
-            push2("Long.ZERO");
+            svalue = "Long.ZERO";
          else if (value == 1L)
-            push2("Long.ONE");
+            svalue = "Long.ONE";
          else
             throw new CompilationException("Bad value for LCONST: " + value);
+         inst("lconst(%s, last, exc", svalue);
       }
       else if (inst instanceof IINC) {
          IINC iinc = (IINC)inst;
-         println("locals[%s] = locals[%s].add(new Integer(%s));", iinc.getIndex(), iinc.getIndex(), iinc.getIncrement());
+         inst("iinc(%s, %s, last, exc)", iinc.getIndex(), iinc.getIncrement());
       }
       else if (inst instanceof ALOAD ||
                inst instanceof ILOAD ||
                inst instanceof FLOAD) {
          LoadInstruction load = (LoadInstruction)inst;
-         push("locals[%s]", load.getIndex());
+         inst("load(%s, last, exc)", load.getIndex());
       }
       else if (inst instanceof DLOAD ||
                inst instanceof LLOAD) {
          LoadInstruction load = (LoadInstruction)inst;
-         push2("locals[%s]", load.getIndex());
+         inst("load2(%s, last, exc)", load.getIndex());
       }
       else if (inst instanceof ASTORE ||
                inst instanceof ISTORE ||
                inst instanceof FSTORE) {
          StoreInstruction store = (StoreInstruction)inst;
-         pop("value");
-         println("locals[%s] = value;", store.getIndex());
+         inst("store(%s, last, exc)", store.getIndex());
       }
       else if (inst instanceof DSTORE || 
                inst instanceof LSTORE) {
          StoreInstruction store = (StoreInstruction)inst;
-         pop2("value");
-         println("locals[%s] = value;", store.getIndex());
+         inst("store2(%s, last, exc)", store.getIndex());
       }
       else if (inst instanceof MONITORENTER ||
                inst instanceof MONITOREXIT) {
-         // TODO throw exception?
-         pop("obj");
-         assertNonNull("obj");
+         di("monitorenter");
       }
       else if (inst instanceof NEWARRAY) {
          Type type = ((NEWARRAY)inst).getType();
-         pop("count");
          String typeString = makeTypeObject(((NEWARRAY)inst).getType());
-         assertWithException("!count.isNegative()", "java.lang.NegativeArraySizeException");
-         push("Util.multianewarray([count], %s)", typeString);
+         inst("newarray(%s, last, exc)", typeString);
       }
       else if (inst instanceof NOP) {
-         // noop
+         di("nop");
       }
       else if (inst instanceof RET) {
          int index = ((RET)inst).getIndex();
-         println("blockIndex = locals[%s].address;", index);
+         inst("ret(%s, last, exc)", index);
       }
       else if (inst instanceof ARETURN ||
                inst instanceof IRETURN ||
                inst instanceof FRETURN) {
-         pop("value");
-         println("return_value = value;");
-         println("blockIndex = -1;");
+         di("return1");
       }
       else if (inst instanceof DRETURN ||
                inst instanceof LRETURN) {
-         pop2("value");
-         println("return_value = value;");
-         println("blockIndex = -1;");
+         di("return2");
       }
       else if (inst instanceof RETURN) {
-         println("blockIndex = -1;");
+         println("last = frame[\"return\"](last, exc);");
       }
       else if (inst instanceof SIPUSH) {
          short value = ((SIPUSH)inst).getValue().shortValue();
-         push("new Integer(%s)", (int)value);
+         inst("sipush(%s, last, exc)", value);
       }
       else if (inst instanceof DUP) {
-         pop("top");
-         push("top");
-         push("top");
+         di("dup");
       }
       else if (inst instanceof DUP_X1) {
-         pop("top1");
-         pop("top2");
-         push("top1");
-         push("top2");
-         push("top1");
+         di("dup_x1");
       }
       else if (inst instanceof DUP_X2) {
-         pop("top1");
-         pop("top2");
-         pop("top3");
-         push("top1");
-         push("top3");
-         push("top2");
-         push("top1");
+         di("dup_x2");
       }
       else if (inst instanceof DUP2) {
-         pop("top1");
-         pop("top2");
-         push("top2");
-         push("top1");
-         push("top2");
-         push("top1");
+         di("dup2");
       }
       else if (inst instanceof DUP2_X1) {
-         pop("top1");
-         pop("top2");
-         pop("top3");
-         push("top2");
-         push("top1");
-         push("top3");
-         push("top2");
-         push("top1");
+         di("dup2_x1");
       }
       else if (inst instanceof DUP2_X2) {
-         pop("top1");
-         pop("top2");
-         pop("top3");
-         pop("top4");
-         push("top2");
-         push("top1");
-         push("top4");
-         push("top3");
-         push("top2");
-         push("top1");
+         di("dup2_x2");
       }
       else if (inst instanceof POP) {
-         pop("value");
+         di("pop");
       }
       else if (inst instanceof POP2) {
-         pop2("value");
+         di("pop2");
       }
       else if (inst instanceof SWAP) {
-         pop("top1");
-         pop("top2");
-         push("top1");
-         push("top2");
+         di("swap");
       }
       else {
          throw new CompilationException("Unsupported instruction type: " + inst);
       }
    }
 
-   private void cmpTwo(String format, int tIndex, int fIndex) {
-      pop("rhs");
-      pop("lhs");
-      String test = String.format(format, "lhs", "rhs");
-      println("blockIndex = ((%s) ? %s : %s);", test, tIndex, fIndex);
-   }
-   private void cmpOne(String format, int tIndex, int fIndex) {
-      pop("value");
-      String test = String.format(format, "value");
-      println("blockIndex = ((%s) ? %s : %s);", test, tIndex, fIndex);
+   private void dif(String name) {
+      inst("%s(succs[0], succs[1], exp)", name);
    }
 
-   private void compileIfInstruction(final int tIndex, final int fIndex,
-                                     final IfInstruction inst) throws CompilationException {
+   private void compileIfInstruction(IfInstruction inst) throws CompilationException {
       if (inst instanceof IF_ACMPEQ) {
-         cmpTwo("%s == %s", tIndex, fIndex);
+         dif("if_acmpeq");
       } 
       else if (inst instanceof IF_ACMPNE) {
-         cmpTwo("%s != %s", tIndex, fIndex);
+         dif("if_acmpne");
       } 
       else if (inst instanceof IF_ICMPEQ) {
-         cmpTwo("%s.equals(%s)", tIndex, fIndex);
+         dif("if_icmpeq");
       }
       else if (inst instanceof IF_ICMPNE) {
-         cmpTwo("%s.notEquals(%s)", tIndex, fIndex);
+         dif("if_icmpne");
       }
       else if (inst instanceof IF_ICMPGE) {
-         cmpTwo("%s.gte(%s)", tIndex, fIndex);
+         dif("if_icmpge");
       }
       else if (inst instanceof IF_ICMPGT) {
-         cmpTwo("%s.gt(%s)", tIndex, fIndex);
+         dif("if_icmpgt");
       }
       else if (inst instanceof IF_ICMPLE) {
-         cmpTwo("%s.lte(%s)", tIndex, fIndex);
+         dif("if_icmple");
       }
       else if (inst instanceof IF_ICMPLT) {
-         cmpTwo("%s.lt(%s)", tIndex, fIndex);
+         dif("if_icmplt");
       }
       else if (inst instanceof IFEQ) {
-         cmpOne("%s.equals(Integer.ZERO)", tIndex, fIndex);
+         dif("ifeq");
       }
       else if (inst instanceof IFNE) {
-         cmpOne("%s.notEquals(Integer.ZERO)", tIndex, fIndex);
+         dif("ifne");
       }
       else if (inst instanceof IFGE) {
-         cmpOne("%s.gte(Integer.ZERO)", tIndex, fIndex);
+         dif("ifge");
       }
       else if (inst instanceof IFGT) {
-         cmpOne("%s.gt(Integer.ZERO)", tIndex, fIndex);
+         dif("ifgt");
       }
       else if (inst instanceof IFLE) {
-         cmpOne("%s.lte(Integer.ZERO)", tIndex, fIndex);
+         dif("ifle");
       }
       else if (inst instanceof IFLT) {
-         cmpOne("%s.lt(Integer.ZERO)", tIndex, fIndex);
+         dif("iflt");
       }
       else if (inst instanceof IFNULL) {
-         cmpOne("%s == null", tIndex, fIndex);
+         dif("ifnull");
       }
       else if (inst instanceof IFNONNULL) {
-         cmpOne("%s != null", tIndex, fIndex);
+         dif("ifnonnull");
       }
       else {
          throw new CompilationException("Unsupported instruction: " + inst.getClass());
