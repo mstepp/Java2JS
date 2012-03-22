@@ -77,7 +77,6 @@ Frame.prototype.return2 = function(cont, exc) {
 Frame.prototype.ret = function(index, cont, exc) {
    var that = this;
    return function() {
-      // TODO??
       return that.locals[index].address();
    };
 };
@@ -230,7 +229,7 @@ Frame.prototype.idiv = function(cont, exc) {
          that.push(divmod.div);
          return cont;
       }
-      return lhs.divmod(rhs, cont2, exc); // TODO
+      return lhs.divmod(rhs, cont2, exc);
    };
 };
 Frame.prototype.imul = function(cont, exc) {
@@ -268,7 +267,7 @@ Frame.prototype.irem = function(cont, exc) {
          that.push(divmod.mod);
          return cont;
       }
-      return lhs.divmod(rhs, cont2, exc); // TODO
+      return lhs.divmod(rhs, cont2, exc);
    };
 };
 Frame.prototype.ishl = function(cont, exc) {
@@ -439,7 +438,7 @@ Frame.prototype.aload = function(cont, exc) {
          that.push(array.get(index.toJS()));         
          return cont;
       }
-      return Util.assertWithException(array != null, "java.lang.NullPointerException", cont2, exc); // TODO
+      return Util.assertWithException(array != null, "java.lang.NullPointerException", cont2, exc);
    };
 };
 Frame.prototype.aload2 = function(cont, exc) {
@@ -451,7 +450,7 @@ Frame.prototype.aload2 = function(cont, exc) {
          that.push2(array.get(index.toJS()));
          return cont;
       }
-      return Util.assertWithException(array != null, "java.lang.NullPointerException", cont2, exc); // TODO
+      return Util.assertWithException(array != null, "java.lang.NullPointerException", cont2, exc);
    };
 };
 Frame.prototype.astore = function(cont, exc) {
@@ -464,7 +463,7 @@ Frame.prototype.astore = function(cont, exc) {
          array.set(index.toJS(), value);
          return cont;
       }
-      return Util.assertWithException(array != null, "java.lang.NullPointerException", cont2, exc); // TODO
+      return Util.assertWithException(array != null, "java.lang.NullPointerException", cont2, exc);
    };
 };
 Frame.prototype.astore2 = function(cont, exc) {
@@ -477,7 +476,7 @@ Frame.prototype.astore2 = function(cont, exc) {
          array.set(index.toJS(), value);
          return cont;
       }
-      return Util.assertWithException(array != null, "java.lang.NullPointerException", cont2, exc); // TODO
+      return Util.assertWithException(array != null, "java.lang.NullPointerException", cont2, exc);
    };
 };
 Frame.prototype.arraylength = function(cont, exc) {
@@ -488,7 +487,7 @@ Frame.prototype.arraylength = function(cont, exc) {
          that.push(array.arraylength());
          return cont;
       }
-      return Util.assertWithException(array != null, "java.lang.NullPointerException", cont2, exc); // TODO
+      return Util.assertWithException(array != null, "java.lang.NullPointerException", cont2, exc);
    };
 };
 Frame.prototype.athrow = function(cont, exc) {
@@ -498,7 +497,7 @@ Frame.prototype.athrow = function(cont, exc) {
       function cont2() {
          return exc(exception);
       }
-      return Util.assertWithException(exception != null, "java.lang.NullPointerException", cont2, exc); // TODO
+      return Util.assertWithException(exception != null, "java.lang.NullPointerException", cont2, exc);
    };
 };
 Frame.prototype.bipush = function(value, cont, exc) {
@@ -658,11 +657,11 @@ Frame.prototype.anewarray = function(typename, cont, exc) {
       function cont1() {
          return Util.nameToType(typename, cont2, exc);
       }
-      return Util.assertWithException(!length.isNegative(), "java.lang.NegativeArraySizeException", cont1, exc); // TODO
+      return Util.assertWithException(!length.isNegative(), "java.lang.NegativeArraySizeException", cont1, exc);
    };
 };
 Frame.prototype["goto"] = function(cont, exc) {
-   return cont; // TODO??
+   return cont;
 };
 Frame.prototype.if_acmpeq = function(contT, contF, exc) {
    var that = this;
@@ -858,7 +857,7 @@ Frame.prototype.checkcast = function(typename, cont, exc) {
       }
       function cont2(type) {
          var check = Util.instance_of(obj, type);
-         return Util.assertWithException(check, "java.lang.ClassCastException", cont3, exc); // TODO
+         return Util.assertWithException(check, "java.lang.ClassCastException", cont3, exc);
       }
       return Util.nameToType(typename, cont2, exc);
    };
@@ -921,7 +920,100 @@ Frame.prototype.putstatic = function(classname, fieldname, is2slot, cont, exc) {
       return Util.resolveClass(classname, cont1, exc);
    };
 };
-// INVOKE*
+Frame.prototype.invokespecial = function(paramTDs, returnTD, classname, methodname, cont, exc) {
+   var that = this;
+   return function() {
+      function cont3(return_value) {
+         switch (returnTD.getStackSlots()) {
+         case 2: that.push2(return_value); break;
+         case 1: that.push(return_value); break;
+         case 0: break;
+         default: throw "Invalid stack slots for type";
+         }
+         return cont;
+      }
+      function cont25(obj, args) {
+         return type.prototype[methodname].apply(obj, [args, cont3, exc]);
+      }
+      function cont2(type) {
+         var args = new Array(paramTDs.length);
+         for (var i = paramTDs.length-1; i >= 0; i--) {
+            if (paramTDs[i].getStackSlots() == 2) {
+               args[i] = that.POP2();
+            } else {
+               args[i] = that.POP();
+            }
+         }
+         var obj = that.POP();
+         return Util.assertWithException(obj != null, 
+                                         "java.lang.NullPointerException", 
+                                         function() {return cont25(obj, args);}, 
+                                         exc);
+      }
+      return Util.resolveClass(classname, cont2, exc);
+   };
+};
+Frame.prototype.invokevirtual = function(paramTDs, returnTD, methodname, cont, exc) {
+   var that = this;
+   return function() {
+      function cont3(return_value) {
+         switch (returnTD.getStackSlots()) {
+         case 2: that.push2(return_value); break;
+         case 1: that.push(return_value); break;
+         case 0: break;
+         default: throw "Invalid stack slots for type";
+         }
+         return cont;
+      }
+      function cont25(obj, args) {
+         return obj[methodname](args, cont3, exc);
+      }
+      function cont2() {
+         var args = new Array(paramTDs.length);
+         for (var i = paramTDs.length-1; i >= 0; i--) {
+            if (paramTDs[i].getStackSlots() == 2) {
+               args[i] = that.POP2();
+            } else {
+               args[i] = that.POP();
+            }
+         }
+         var obj = that.POP();
+         return Util.assertWithException(obj != null, 
+                                         "java.lang.NullPointerException", 
+                                         function() {return cont25(obj, args);}, 
+                                         exc);
+      }
+      return cont2;
+   };
+};
+Frame.prototype.invokeinterface = Frame.prototype.invokevirtual;
+
+Frame.prototype.invokestatic = function(paramTDs, returnTD, classname, methodname, cont, exc) {
+   var that = this;
+   return function() {
+      function cont3(return_value) {
+         switch (returnTD.getStackSlots()) {
+         case 2: that.push2(return_value); break;
+         case 1: that.push(return_value); break;
+         case 0: break;
+         default: throw "Invalid stack slots for type";
+         }
+         return cont;
+      }
+      function cont2(type) {
+         var args = new Array(paramTDs.length);
+         for (var i = paramTDs.length-1; i >= 0; i--) {
+            if (paramTDs[i].getStackSlots() == 2) {
+               args[i] = that.POP2();
+            } else {
+               args[i] = that.POP();
+            }
+         }
+         return type[methodname](args, cont3, exc);
+      }
+      return Util.resolveClass(classname, cont2, exc);
+   };
+};
 Frame.prototype["instanceof"] = function(typename, cont, exc) {
    var that = this;
    return function() {

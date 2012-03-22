@@ -45,6 +45,34 @@ public class InstructionCompilerCPS {
       inst("%s(last, exc)", name);
    }
 
+   private String makeTD(Type type) {
+      if (type instanceof ArrayType) {
+         return String.format("new ArrayTD(%s)", makeTD(((ArrayType)type).getElementType()));
+      } else if (type instanceof ObjectType) {
+         return String.format("new ClassTD(\"%s\")", ((ObjectType)type).getClassName());
+      } else if (type.equals(Type.BOOLEAN)) {
+         return "PrimitiveTD.BOOLEAN";
+      } else if (type.equals(Type.BYTE)) {
+         return "PrimitiveTD.BYTE";
+      } else if (type.equals(Type.CHAR)) {
+         return "PrimitiveTD.CHAR";
+      } else if (type.equals(Type.DOUBLE)) {
+         return "PrimitiveTD.DOUBLE";
+      } else if (type.equals(Type.FLOAT)) {
+         return "PrimitiveTD.FLOAT";
+      } else if (type.equals(Type.INT)) {
+         return "PrimitiveTD.INT";
+      } else if (type.equals(Type.LONG)) {
+         return "PrimitiveTD.LONG";
+      } else if (type.equals(Type.SHORT)) {
+         return "PrimitiveTD.SHORT";
+      } else if (type.equals(Type.VOID)) {
+         return "PrimitiveTD.VOID";
+      } else {
+         throw new RuntimeException("Invalid type: " + type);
+      }
+   }
+
    private String makeTypeObject(Type type) {
       if (type instanceof ArrayType) {
          return String.format("new ArrayType(%s)", makeTypeObject(((ArrayType)type).getElementType()));
@@ -343,159 +371,66 @@ public class InstructionCompilerCPS {
          }
       }
       else if (inst instanceof INVOKESPECIAL) {
-         // TODO
-         /*
          InvokeInstruction invoke = (InvokeInstruction)inst;
          Type[] args = invoke.getArgumentTypes(cpg);
          Type returnType = invoke.getReturnType(cpg);
-         for (int i = args.length-1; i >= 0; i--) {
-            if (args[i].equals(Type.DOUBLE) ||
-                args[i].equals(Type.LONG)) {
-               pop2("arg%s", i);
-            } else {
-               pop("arg%s", i);
-            }
-         }
-         pop("obj");
-         assertNonNull("obj");
-
-         boolean supercall = false;
          ReferenceType type = invoke.getReferenceType(cpg);
-         ObjectType mysupertype = new ObjectType(this.classgen.getSuperclassName());
-         if (type.equals(mysupertype)) {
-            // super call
-            supercall = true;
-         }
          if (type instanceof ArrayType) {
             type = Type.OBJECT;
          }
 
          String methodname = invoke.getMethodName(cpg);
          String munged;
-
          if (methodname.equals("<init>")) {
-            munged = this.munger.mungeInit(type.toString(), invoke.getArgumentTypes(cpg));
+            munged = this.munger.mungeInit(type.toString(), args);
          } else {
             munged = this.munger.mungeMethodName(type.toString(),
                                                  methodname,
-                                                 invoke.getReturnType(cpg),
-                                                 invoke.getArgumentTypes(cpg),
+                                                 returnType,
+                                                 args,
                                                  false);
          }
 
-         boolean returns = !returnType.equals(Type.VOID);
-         String argstr = getArgStr(args.length);
-         if (supercall) {
-            // write out super call
-            if (returns) {
-               println("var result = %s.prototype.%s.apply(obj, [%s]);", 
-                       Compiler.resolve(((INVOKESPECIAL)inst).getReferenceType(cpg).toString()), munged, argstr);
-            } else {
-               println("%s.prototype.%s.apply(obj, [%s]);", 
-                       Compiler.resolve(((INVOKESPECIAL)inst).getReferenceType(cpg).toString()), munged, argstr);
-            }
-         } else {
-            // write out the call
-            if (returns) {
-               println("var result = obj.%s(%s);", munged, argstr);
-            } else {
-               println("obj.%s(%s);", munged, argstr);
-            }
-         }
-
-         if (returnType.equals(Type.DOUBLE)) {
-            push2("result");
-         } else if (!returnType.equals(Type.VOID)) {
-            push("result");
-         }
-         */
+         inst("invokespecial([%s], %s, \"%s\", \"%s\", last, exc)", 
+              getArgTDs(args), makeTD(returnType), type.toString(), munged);
       }
       else if (inst instanceof INVOKEINTERFACE ||
                inst instanceof INVOKEVIRTUAL) {
-         /*
-         // TODO
          InvokeInstruction invoke = (InvokeInstruction)inst;
          Type[] args = invoke.getArgumentTypes(cpg);
          Type returnType = invoke.getReturnType(cpg);
-         for (int i = args.length-1; i >= 0; i--) {
-            if (args[i].equals(Type.DOUBLE) ||
-                args[i].equals(Type.LONG)) {
-               pop2("arg%s", i);
-            } else {
-               pop("arg%s", i);
-            }
+         ReferenceType type = invoke.getReferenceType(cpg);
+         if (type instanceof ArrayType) {
+            type = Type.OBJECT;
          }
-         pop("obj");
-         assertNonNull("obj");
          String methodname = invoke.getMethodName(cpg);
          String munged;
          if (methodname.equals("<init>")) {
-            ReferenceType type = invoke.getReferenceType(cpg);
-            if (type instanceof ArrayType) {
-               type = Type.OBJECT;
-            }
             munged = this.munger.mungeInit(type.toString(), invoke.getArgumentTypes(cpg));
          } else {
-            ReferenceType type = invoke.getReferenceType(cpg);
-            if (type instanceof ArrayType) {
-               type = Type.OBJECT;
-            }
             munged = this.munger.mungeMethodName(type.toString(),
                                                  methodname,
-                                                 invoke.getReturnType(cpg),
-                                                 invoke.getArgumentTypes(cpg),
+                                                 returnType,
+                                                 args,
                                                  false);
          }
 
-         String argstr = getArgStr(args.length);
-         if (returnType.equals(Type.VOID)) {
-            println("obj.%s(%s);", munged, argstr);
-         } else {
-            println("var result = obj.%s(%s);", munged, argstr);
-         }
-
-         if (returnType.equals(Type.DOUBLE)) {
-            push2("result");
-         } else if (!returnType.equals(Type.VOID)) {
-            push("result");
-         }
-         */
+         String instruction = (inst instanceof INVOKEVIRTUAL) ? "invokevirtual" : "invokeinterface";
+         inst("%s([%s], %s, \"%s\", last, exc)",
+              instruction, getArgTDs(args), makeTD(returnType), munged);
       }
       else if (inst instanceof INVOKESTATIC) {
-         /*
-         // TODO
          InvokeInstruction invoke = (InvokeInstruction)inst;
          Type[] args = invoke.getArgumentTypes(cpg);
          Type returnType = invoke.getReturnType(cpg);
-         for (int i = args.length-1; i >= 0; i--) {
-            if (args[i].equals(Type.DOUBLE) ||
-                args[i].equals(Type.LONG)) {
-               pop2("arg%s", i);
-            } else {
-               pop("arg%s", i);
-            }
-         }
-         // should never be clinit, cannot call directly
          String classname = invoke.getReferenceType(cpg).toString();
          String munged = this.munger.mungeMethodName(classname,
                                                      invoke.getMethodName(cpg),
-                                                     invoke.getReturnType(cpg),
-                                                     invoke.getArgumentTypes(cpg),
+                                                     returnType,
+                                                     args,
                                                      false);
-
-         String argstr = getArgStr(args.length);
-         if (returnType.equals(Type.VOID)) {
-            println("%s.%s(%s);", Compiler.resolve(classname), munged, argstr);
-         } else {
-            println("var result = %s.%s(%s);", Compiler.resolve(classname), munged, argstr);
-         }
-
-         if (returnType.equals(Type.DOUBLE)) {
-            push2("result");
-         } else if (!returnType.equals(Type.VOID)) {
-            push("result");
-         }
-         */
+         inst("invokestatic([%s], %s, \"%s\", \"%s\", last, exc)",
+              getArgTDs(args), makeTD(returnType), classname, munged);
       }
       else if (inst instanceof INSTANCEOF) {
          Type type = ((INSTANCEOF)inst).getType(cpg);
@@ -749,6 +684,15 @@ public class InstructionCompilerCPS {
          }
       }
       return result.toString();
+   }
+
+   private String getArgTDs(Type[] params) {
+      StringBuilder builder = new StringBuilder();
+      for (int i = 0; i < params.length; i++) {
+         if (i>0) builder.append(", ");
+         builder.append(makeTD(params[i]));
+      }
+      return builder.toString();
    }
 
    private String getArgStr(int length) {
