@@ -6,6 +6,9 @@ function Frame(locals, maxLocals) {
    this.stack = [];
    this.return_value = null;
 }
+Frame.prototype.exception = function(ex) {
+   this.stack = [ex];
+};
 Frame.prototype.load = function(index, cont, exc) {
    var that = this;
    return function() {
@@ -435,8 +438,11 @@ Frame.prototype.aload = function(cont, exc) {
       var index = that.POP();
       var array = that.POP();
       function cont2() {
-         that.push(array.get(index.toJS()));         
-         return cont;
+         function cont3(value) {
+            that.push(value);
+            return cont;
+         }
+         return array.get_cps(index.toJS(), cont3, exc);
       }
       return Util.assertWithException(array != null, "java.lang.NullPointerException", cont2, exc);
    };
@@ -447,8 +453,11 @@ Frame.prototype.aload2 = function(cont, exc) {
       var index = that.POP();
       var array = that.POP();
       function cont2() {
-         that.push2(array.get(index.toJS()));
-         return cont;
+         function cont3(value) {
+            that.push2(value);
+            return cont;
+         }
+         return array.get_cps(index.toJS(), cont3, exc);
       }
       return Util.assertWithException(array != null, "java.lang.NullPointerException", cont2, exc);
    };
@@ -460,8 +469,7 @@ Frame.prototype.astore = function(cont, exc) {
       var index = that.POP();
       var array = that.POP();
       function cont2() {
-         array.set(index.toJS(), value);
-         return cont;
+         return array.set_cps(index.toJS(), value, cont, exc);
       }
       return Util.assertWithException(array != null, "java.lang.NullPointerException", cont2, exc);
    };
@@ -473,8 +481,7 @@ Frame.prototype.astore2 = function(cont, exc) {
       var index = that.POP();
       var array = that.POP();
       function cont2() {
-         array.set(index.toJS(), value);
-         return cont;
+         return array.set_cps(index.toJS(), value, cont, exc);
       }
       return Util.assertWithException(array != null, "java.lang.NullPointerException", cont2, exc);
    };
@@ -862,29 +869,31 @@ Frame.prototype.checkcast = function(typename, cont, exc) {
       return Util.nameToType(typename, cont2, exc);
    };
 };
-Frame.prototype.getfield = function(fieldname, is2slot, cont, exc) {
+Frame.prototype.getfield = function(signature, cont, exc) {
    var that = this;
    return function() {
+      var fieldinfo = Util.parseFieldSignature(signature);
       var obj = that.POP();
       function cont2() {
-         if (is2slot) {
-            that.push2(obj[fieldname]);
+         if (fieldinfo.type.getStackSlots() == 2) {
+            that.push2(obj[signature]);
          } else {
-            that.push(obj[fieldname]);
+            that.push(obj[signature]);
          }
          return cont;
       }
       return Util.assertWithException(obj != null, "java.lang.NullPointerException", cont2, exc);
    };
 };
-Frame.prototype.getstatic = function(classname, fieldname, is2slot, cont, exc) {
+Frame.prototype.getstatic = function(classname, signature, cont, exc) {
    var that = this;
    return function() {
+      var fieldinfo = Util.parseFieldSignature(signature);
       function cont3(type) {
-         if (is2slot) {
-            that.push2(type[fieldname]);
+         if (fieldinfo.type.getStackSlots() == 2) {
+            that.push2(type[signature]);
          } else {
-            that.push2(type[fieldname]);
+            that.push2(type[signature]);
          }
          return cont;
       }
@@ -894,24 +903,26 @@ Frame.prototype.getstatic = function(classname, fieldname, is2slot, cont, exc) {
       return Util.resolveClass(classname, cont2, exc);
    };
 };
-Frame.prototype.putfield = function(fieldname, is2slot, cont, exc) {
+Frame.prototype.putfield = function(signature, cont, exc) {
    var that = this;
    return function() {
-      var value = is2slot ? that.POP2() : that.POP();
+      var fieldinfo = Util.parseFieldSignature(signature);
+      var value = (fieldinfo.type.getStackSlots() == 2) ? that.POP2() : that.POP();
       var obj = that.POP();
       function cont2() {
-         obj[fieldname] = value;
+         obj[signature] = value;
          return cont;
       }
       return Util.assertWithException(obj != null, "java.lang.NullPointerException", cont2, exc);
    };
 };
-Frame.prototype.putstatic = function(classname, fieldname, is2slot, cont, exc) {
+Frame.prototype.putstatic = function(classname, signature, cont, exc) {
    var that = this;
    return function() {
-      var value = is2slot ? that.POP2() : that.POP();
+      var fieldinfo = Util.parseFieldSignature(signature);
+      var value = (fieldinfo.type.getStackSlots() == 2) ? that.POP2() : that.POP();
       function cont2(type) {
-         type[fieldname] = value;
+         type[signature] = value;
          return cont;
       }
       function cont1(type) {
@@ -920,11 +931,12 @@ Frame.prototype.putstatic = function(classname, fieldname, is2slot, cont, exc) {
       return Util.resolveClass(classname, cont1, exc);
    };
 };
-Frame.prototype.invokespecial = function(paramTDs, returnTD, classname, methodname, cont, exc) {
+Frame.prototype.invokespecial = function(classname, signature, cont, exc) {
    var that = this;
    return function() {
+      var methodinfo = Util.parseMethodSignature(signature);
       function cont3(return_value) {
-         switch (returnTD.getStackSlots()) {
+         switch (methodinfo.returnType.getStackSlots()) {
          case 2: that.push2(return_value); break;
          case 1: that.push(return_value); break;
          case 0: break;
@@ -933,9 +945,10 @@ Frame.prototype.invokespecial = function(paramTDs, returnTD, classname, methodna
          return cont;
       }
       function cont25(obj, args) {
-         return type.prototype[methodname].apply(obj, [args, cont3, exc]);
+         return type.prototype[signature].apply(obj, [args, cont3, exc]);
       }
       function cont2(type) {
+         var paramTDs = methodinfo.paramTypes;
          var args = new Array(paramTDs.length);
          for (var i = paramTDs.length-1; i >= 0; i--) {
             if (paramTDs[i].getStackSlots() == 2) {
@@ -953,11 +966,12 @@ Frame.prototype.invokespecial = function(paramTDs, returnTD, classname, methodna
       return Util.resolveClass(classname, cont2, exc);
    };
 };
-Frame.prototype.invokevirtual = function(paramTDs, returnTD, methodname, cont, exc) {
+Frame.prototype.invokevirtual = function(signature, cont, exc) {
    var that = this;
    return function() {
+      var methodinfo = Util.parseMethodSignature(signature);
       function cont3(return_value) {
-         switch (returnTD.getStackSlots()) {
+         switch (methodinfo.returnType.getStackSlots()) {
          case 2: that.push2(return_value); break;
          case 1: that.push(return_value); break;
          case 0: break;
@@ -966,9 +980,10 @@ Frame.prototype.invokevirtual = function(paramTDs, returnTD, methodname, cont, e
          return cont;
       }
       function cont25(obj, args) {
-         return obj[methodname](args, cont3, exc);
+         return obj[signature](args, cont3, exc);
       }
       function cont2() {
+         var paramTDs = methodinfo.paramTypes;
          var args = new Array(paramTDs.length);
          for (var i = paramTDs.length-1; i >= 0; i--) {
             if (paramTDs[i].getStackSlots() == 2) {
@@ -988,11 +1003,12 @@ Frame.prototype.invokevirtual = function(paramTDs, returnTD, methodname, cont, e
 };
 Frame.prototype.invokeinterface = Frame.prototype.invokevirtual;
 
-Frame.prototype.invokestatic = function(paramTDs, returnTD, classname, methodname, cont, exc) {
+Frame.prototype.invokestatic = function(classname, signature, cont, exc) {
    var that = this;
    return function() {
+      var methodinfo = Util.parseMethodSignature(signature);
       function cont3(return_value) {
-         switch (returnTD.getStackSlots()) {
+         switch (methodinfo.returnType.getStackSlots()) {
          case 2: that.push2(return_value); break;
          case 1: that.push(return_value); break;
          case 0: break;
@@ -1001,6 +1017,7 @@ Frame.prototype.invokestatic = function(paramTDs, returnTD, classname, methodnam
          return cont;
       }
       function cont2(type) {
+         var paramTDs = methodinfo.paramTypes;
          var args = new Array(paramTDs.length);
          for (var i = paramTDs.length-1; i >= 0; i--) {
             if (paramTDs[i].getStackSlots() == 2) {
@@ -1009,7 +1026,7 @@ Frame.prototype.invokestatic = function(paramTDs, returnTD, classname, methodnam
                args[i] = that.POP();
             }
          }
-         return type[methodname](args, cont3, exc);
+         return type[signature](args, cont3, exc);
       }
       return Util.resolveClass(classname, cont2, exc);
    };

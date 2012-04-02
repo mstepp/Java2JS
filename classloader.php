@@ -25,6 +25,8 @@
          ob_start();
          passthru("cat $jsfilename");
          ob_end_flush();
+      } else {
+         echo "Error in make process: $retval, $lastline";
       }
    }
 ?>

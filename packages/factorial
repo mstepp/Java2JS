@@ -27,3 +27,5 @@ java/lang/LinkageError
 java/lang/Error
 java/lang/annotation/Annotation
 java/lang/Double
+java/lang/StringValue
+java/lang/UnsatisfiedLinkError

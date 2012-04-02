@@ -21,7 +21,7 @@ public class Test1 {
    public static void main(String args[]) throws Throwable {
       ClassParser parser = new ClassParser(args[0]);
       JavaClass clazz = parser.parse();
-      java2js.Compiler compiler = new java2js.Compiler(new ClassGen(clazz), new DefaultNameMunger(), logger);
+      java2js.Compiler compiler = new java2js.Compiler(new ClassGen(clazz), logger);
       compiler.compile(new DefaultPrinter(System.out));
    }
 }

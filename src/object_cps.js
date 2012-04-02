@@ -13,96 +13,96 @@ Packages.java.lang.Object =
                   fields : {},
                   static_fields : {},
                   memberinfo : {
-                     method_getClass_Ljava$Dlang$DClassE__ : 0x111,
-                     method_hashCode_I__ : 0x101,
-                     method_notify_V__ : 0x111,
-                     method_equals_Z_Ljava$Dlang$DObjectE_ : 0x1,
-                     method_wait_V_JI_ : 0x11,
-                     method_notify$All_V__ : 0x111,
-                     method_finalize_V__ : 0x4,
-                     clinit : 0x8,
-                     method_wait_V__ : 0x11,
-                     method_toString_Ljava$Dlang$DStringE__ : 0x1,
-                     init__ : 0x1,
-                     method_registerNatives_V__ : 0x10a,
-                     method_clone_Ljava$Dlang$DObjectE__ : 0x104,
-                     method_wait_V_J_ : 0x111
+                     "getClass()Ljava/lang/Class;" : 0x111,
+                     "hashCode()I" : 0x101,
+                     "notify()V" : 0x111,
+                     "equals(Ljava/lang/Object;)Z" : 0x1,
+                     "wait(JI)V" : 0x11,
+                     "notifyAll()V" : 0x111,
+                     "finalize()V" : 0x4,
+                     "<clinit>()V" : 0x8,
+                     "wait()V" : 0x11,
+                     "toString()Ljava/lang/String;" : 0x1,
+                     "<init>()V" : 0x1,
+                     "registerNatives()V" : 0x10a,
+                     "clone()Ljava/lang/Object;" : 0x104,
+                     "wait(J)V" : 0x111
                   },
                   methods : {
-                     init__ : 
+                     "<init>()V" : 
                      function(args, cont, exc) {
                         this.hashCode = (Math.random()*0xFFFFFFFF) | 0;
                         return cont(undefined);
                      },
 
-                     method_equals_Z_Ljava$Dlang$DObjectE_ : 
+                     "equals(Ljava/lang/Object;)Z" : 
                      function(args, cont, exc) {
                         return cont((this == args[0]) ? Integer.ONE : Integer.ZERO);
                      },
                           
-                     method_hashCode_I__ :
+                     "hashCode()I" :
                      function(args, cont, exc) {
                         return cont(new Integer(this.hashcode));
                      },
    
-                     method_getClass_Ljava$Dlang$DClassE__ : 
+                     "getClass()Ljava/lang/Class;" : 
                      function(args, cont, exc) {
                         return cont(Util.getClass(this.thisclass));
                      },
 
-                     method_clone_Ljava$Dlang$DObjectE__ :
+                     "clone()Ljava/lang/Object;" :
                      function(args, cont, exc) {
                         var frame = new Frame([this], 2);
                         function cont2(obj) {
                            function cont3() {
                               return cont(obj);
                            }
-                           return frame.invokespecial([], new ClassTD("java.lang.Object"), "java.lang.Object", "init__", cont3, exc);
+                           return frame.invokespecial([], "java.lang.Object", "<init>()V", cont3, exc);
                         }
                         return Packages.java.lang.Object().newInstance(cont2, exc);
                      },
 
-                     method_toString_Ljava$Dlang$DString__ : 
+                     "toString()Ljava/lang/String;" : 
                      function(args, cont, exc) {
                         return cont(Util.js2java_string("@" + this.hashcode, cont, exc));
                      },
 
-                     method_notify_V__ : 
+                     "notify()V" : 
                      function(args, cont, exc) {
                         // this does nothing
                         // TODO throw exception?
                         return cont(undefined);
                      },
 
-                     method_notify$All_V__ : 
+                     "notifyAll()V" : 
                      function(args, cont, exc) {
                         // this does nothing
                         // TODO throw exception?
                         return cont(undefined);
                      },
    
-                     method_wait_V_JI_ :
+                     "wait(JI)V" :
                      function(args, cont, exc) {
                         // this does nothing
                         // TODO throw exception?
                         return cont(undefined);
                      },
 
-                     method_wait_V_J_ :
+                     "wait(J)V" :
                      function(args, cont, exc) {
                         // this does nothing
                         // TODO throw exception?
                         return cont(undefined);
                      },
 
-                     method_wait_V__ :
+                     "wait()V" :
                      function(args, cont, exc) {
                         // this does nothing
                         // TODO throw exception?
                         return cont(undefined);
                      },
 
-                     method_finalize_V__ : 
+                     "finalize()V" : 
                      function(args, cont, exc) {
                         // does nothing
                         return cont(undefined);

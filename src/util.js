@@ -30,7 +30,7 @@ var Util =
             bytearray.set(i, new Integer(str.charCodeAt(i) & 0xFFFF));
          }
          var result = Util.resolveClass("java.lang.String").newInstance();
-         result.init_AC_(bytearray);
+         result["<init>([C)V"](bytearray);
          return result;
       }
 
@@ -38,9 +38,9 @@ var Util =
          if (str == null)
             return null;
          var result = "";
-         var length = str.method_length_I__().toJS();
+         var length = str["length()I"]().toJS();
          for (var i = 0; i < length; i++) {
-            var c = str.method_char$At_C_I_(new Integer(i)).toJS();
+            var c = str["charAt(I)C"](new Integer(i)).toJS();
             result += String.fromCharCode(c);
          }
          return result;
@@ -71,7 +71,7 @@ var Util =
             var dim = dims[index].toJS();
             if (dim < 0) {
                var exception = Util.resolveClass("java.lang.NegativeArraySizeException").newInstance();
-               exception.init__();
+               exception["<init>()V"]();
                throw exception;
             }
             var array = new ArrayObject(dim, type);
@@ -214,7 +214,7 @@ var Util =
          }
 
          var exception = Util.resolveClass("java.lang.UnsatisfiedLinkError").newInstance();
-         exception.init_Ljava$Dlang$DStringE_(Util.js2java_string(classname + "." + methodname));
+         exception["<init>(Ljava/lang/String;)V"](Util.js2java_string(classname + "." + methodname));
          throw exception;
       }
 
@@ -304,8 +304,8 @@ var Util =
             initialize(type.elementType);
          }
 
-         if ("clinit" in type) {
-            type.clinit();
+         if ("<clinit>()V" in type) {
+            type["<clinit>()V"]();
          }
       }
 
@@ -320,7 +320,7 @@ var Util =
       function assertWithException(condition, exceptionType) {
          if (!condition) {
             var exception = exceptionType.newInstance();
-            exception.init__();
+            exception["<init>()V"]();
             throw exception;
          }
       }
@@ -329,7 +329,7 @@ var Util =
       function assertWithMessageException(condition, message, exceptionType) {
          if (!condition) {
             var exception = exceptionType.newInstance();
-            exception.init_Ljava$Dlang$DStringE_(Util.js2java_string(message));
+            exception["<init>(Ljava/lang/String;)V"](Util.js2java_string(message));
             throw exception;
          }
       }
@@ -441,7 +441,7 @@ var Util =
                throw "JavaScript exception: " + exception;
             }
             var result = Util.resolveClass("java.lang.ExceptionInInitializerError").newInstance();
-            result.init_Ljava$Dlang$DThrowableE_(exception);
+            result["<init>(Ljava/lang/Throwable;)V"](exception);
             throw result;
          }
       }
@@ -454,7 +454,7 @@ var Util =
 
          var result = Util.resolveClass("java.lang.Class").newInstance();
          result.pojo = type;
-         result.init__();
+         result["<init>()V"]();
 
          getClass_cache[type.classname] = result;
 
@@ -505,7 +505,7 @@ var Util =
          function barf() {
             throw "Cannot find class: " + classname;
             //		var exception = Util.resolveClass("java.lang.NoClassDefFoundError");
-            //		exception.init__();
+            //		exception["<init>()V"]();
             //		throw exception;
          }
 

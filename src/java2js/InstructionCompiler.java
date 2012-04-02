@@ -8,17 +8,14 @@ public class InstructionCompiler {
    private final ClassGen classgen;
    private final ConstantPoolGen cpg;
    private final String unqualified;
-   private final NameMunger munger;
    private final Function<InstructionHandle,Integer> h2i;
 
    public InstructionCompiler(Printer _out, 
                               ClassGen _classgen,
-                              NameMunger _munger,
                               Function<InstructionHandle,Integer> _h2i) {
       this.out = _out;
       this.classgen = _classgen;
       this.h2i = _h2i;
-      this.munger = _munger;
       this.cpg = this.classgen.getConstantPool();
 
       String unqualified;
@@ -424,74 +421,66 @@ public class InstructionCompiler {
          GETFIELD getfield = (GETFIELD)inst;
          Type type = getfield.getFieldType(cpg);
          String classname = getfield.getReferenceType(cpg).toString();
-         String fieldname = getfield.getFieldName(cpg);
+         String munged = getfield.getFieldName(cpg) + "." + getfield.getSignature(cpg);
          if (type.equals(Type.DOUBLE) ||
              type.equals(Type.LONG)) {
             pop("obj");
             assertNonNull("obj");
-            String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
-            push2("obj.%s", munged);
+            push2("obj[\"%s\"]", munged);
          } else {
             pop("obj");
             assertNonNull("obj");
-            String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
-            push("obj.%s", munged);
+            push("obj[\"%s\"]", munged);
          }
       }
       else if (inst instanceof GETSTATIC) {
          GETSTATIC getstatic = (GETSTATIC)inst;
          Type type = getstatic.getFieldType(cpg);
          String classname = getstatic.getReferenceType(cpg).toString();
-         String fieldname = getstatic.getFieldName(cpg);
+         String munged = getstatic.getFieldName(cpg) + "." + getstatic.getSignature(cpg);
          println("Util.initialize(%s);", Compiler.resolve(classname));
          if (type.equals(Type.DOUBLE) ||
              type.equals(Type.LONG)) {
-            String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
             // don't need resolve because we already init'ed
-            push2("Packages.%s().%s", classname, munged);
+            push2("Packages.%s()[\"%s\"]", classname, munged);
          } else {
-            String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
             // don't need resolve because we already init'ed
-            push("Packages.%s().%s", classname, munged);
+            push("Packages.%s()[\"%s\"]", classname, munged);
          }
       }
       else if (inst instanceof PUTFIELD) {
          PUTFIELD putfield = (PUTFIELD)inst;
          Type type = putfield.getFieldType(cpg);
          String classname = putfield.getReferenceType(cpg).toString();
-         String fieldname = putfield.getFieldName(cpg);
+         String munged = putfield.getFieldName(cpg) + "." + putfield.getSignature(cpg);
          if (type.equals(Type.DOUBLE) ||
              type.equals(Type.LONG)) {
             pop2("value");
             pop("obj");
             assertNonNull("obj");
-            String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
-            println("obj.%s = value;", munged);
+            println("obj[\"%s\"] = value;", munged);
          } else {
             pop("value");
             pop("obj");
             assertNonNull("obj");
-            String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
-            println("obj.%s = value;", munged);
+            println("obj[\"%s\"] = value;", munged);
          }
       }
       else if (inst instanceof PUTSTATIC) {
          PUTSTATIC putstatic = (PUTSTATIC)inst;
          Type type = putstatic.getFieldType(cpg);
          String classname = putstatic.getReferenceType(cpg).toString();
-         String fieldname = putstatic.getFieldName(cpg);
+         String munged = putstatic.getFieldName(cpg) + "." + putstatic.getSignature(cpg);
          println("Util.initialize(%s);", Compiler.resolve(classname));
          if (type.equals(Type.DOUBLE) ||
              type.equals(Type.LONG)) {
             pop2("value");
-            String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
             // don't need resolve because we already init'ed
-            println("Packages.%s().%s = value;", classname, munged);
+            println("Packages.%s()[\"%s\"] = value;", classname, munged);
          } else {
             pop("value");
-            String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
             // don't need resolve because we already init'ed
-            println("Packages.%s().%s = value;", classname, munged);
+            println("Packages.%s()[\"%s\"] = value;", classname, munged);
          }
       }
       else if (inst instanceof INVOKESPECIAL) {
@@ -520,36 +509,25 @@ public class InstructionCompiler {
             type = Type.OBJECT;
          }
 
-         String methodname = invoke.getMethodName(cpg);
-         String munged;
-
-         if (methodname.equals("<init>")) {
-            munged = this.munger.mungeInit(type.toString(), invoke.getArgumentTypes(cpg));
-         } else {
-            munged = this.munger.mungeMethodName(type.toString(),
-                                                 methodname,
-                                                 invoke.getReturnType(cpg),
-                                                 invoke.getArgumentTypes(cpg),
-                                                 false);
-         }
+         String munged = invoke.getMethodName(cpg) + invoke.getSignature(cpg);
 
          boolean returns = !returnType.equals(Type.VOID);
          String argstr = getArgStr(args.length);
          if (supercall) {
             // write out super call
             if (returns) {
-               println("var result = %s.prototype.%s.apply(obj, [%s]);", 
+               println("var result = %s.prototype[\"%s\"].apply(obj, [%s]);", 
                        Compiler.resolve(((INVOKESPECIAL)inst).getReferenceType(cpg).toString()), munged, argstr);
             } else {
-               println("%s.prototype.%s.apply(obj, [%s]);", 
+               println("%s.prototype[\"%s\"].apply(obj, [%s]);", 
                        Compiler.resolve(((INVOKESPECIAL)inst).getReferenceType(cpg).toString()), munged, argstr);
             }
          } else {
             // write out the call
             if (returns) {
-               println("var result = obj.%s(%s);", munged, argstr);
+               println("var result = obj[\"%s\"](%s);", munged, argstr);
             } else {
-               println("obj.%s(%s);", munged, argstr);
+               println("obj[\"%s\"](%s);", munged, argstr);
             }
          }
 
@@ -574,31 +552,13 @@ public class InstructionCompiler {
          }
          pop("obj");
          assertNonNull("obj");
-         String methodname = invoke.getMethodName(cpg);
-         String munged;
-         if (methodname.equals("<init>")) {
-            ReferenceType type = invoke.getReferenceType(cpg);
-            if (type instanceof ArrayType) {
-               type = Type.OBJECT;
-            }
-            munged = this.munger.mungeInit(type.toString(), invoke.getArgumentTypes(cpg));
-         } else {
-            ReferenceType type = invoke.getReferenceType(cpg);
-            if (type instanceof ArrayType) {
-               type = Type.OBJECT;
-            }
-            munged = this.munger.mungeMethodName(type.toString(),
-                                                 methodname,
-                                                 invoke.getReturnType(cpg),
-                                                 invoke.getArgumentTypes(cpg),
-                                                 false);
-         }
+         String munged = invoke.getMethodName(cpg) + invoke.getSignature(cpg);
 
          String argstr = getArgStr(args.length);
          if (returnType.equals(Type.VOID)) {
-            println("obj.%s(%s);", munged, argstr);
+            println("obj[\"%s\"](%s);", munged, argstr);
          } else {
-            println("var result = obj.%s(%s);", munged, argstr);
+            println("var result = obj[\"%s\"](%s);", munged, argstr);
          }
 
          if (returnType.equals(Type.DOUBLE)) {
@@ -621,17 +581,13 @@ public class InstructionCompiler {
          }
          // should never be clinit, cannot call directly
          String classname = invoke.getReferenceType(cpg).toString();
-         String munged = this.munger.mungeMethodName(classname,
-                                                     invoke.getMethodName(cpg),
-                                                     invoke.getReturnType(cpg),
-                                                     invoke.getArgumentTypes(cpg),
-                                                     false);
+         String munged = invoke.getMethodName(cpg) + invoke.getSignature(cpg);
 
          String argstr = getArgStr(args.length);
          if (returnType.equals(Type.VOID)) {
-            println("%s.%s(%s);", Compiler.resolve(classname), munged, argstr);
+            println("%s[\"%s\"](%s);", Compiler.resolve(classname), munged, argstr);
          } else {
-            println("var result = %s.%s(%s);", Compiler.resolve(classname), munged, argstr);
+            println("var result = %s[\"%s\"](%s);", Compiler.resolve(classname), munged, argstr);
          }
 
          if (returnType.equals(Type.DOUBLE)) {

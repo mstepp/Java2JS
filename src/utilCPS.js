@@ -61,26 +61,35 @@ var Util =
          return parse;
       }
 
-      // returns TD
+      // returns {name:string, type:TD}
+      // Format is fieldname.signature
+      // e.g. "count.I"
       function parseFieldSignature(signature) {
+         var index = signature.indexOf(".");
+         if (index < 0) 
+            throw "Invalid format for fieldname/signature";
+         var name = signature.substring(0, index);
+         signature = signature.substring(index + 1);
          var parser = typeParser(signature);
          var type = parser();
          if (type == null)
             throw "Cannot parse type from field signature";
          if (!type.isParameterType())
             throw "Field type must be a parameter type";
-         return type;
+         return {name:name, type:type};
       }
 
-      // returns {params:[TD], return:TD}
+      // returns {name:string, paramTypes:[TD], returnType:TD}
       function parseMethodSignature(signature) {
-         if (signature.length == 0 || signature.charAt(0) != "(")
-            throw "Expecting '('";
-         var index = signature.indexOf(")");
-         if (index < 0)
+         var openIndex = signature.indexOf("(");
+         if (openIndex <= 0)
+            throw "No method name found";
+         var name = signature.substring(0, openIndex);
+         var closeIndex = signature.indexOf(")", openIndex);
+         if (closeIndex < 0)
             throw "Expecting ')'";
-         var paramSigs = signature.substring(1, index);
-         var returnSig = signature.substring(index + 1);
+         var paramSigs = signature.substring(openIndex + 1, closeIndex);
+         var returnSig = signature.substring(closeIndex + 1);
          var paramTDs = [];
          var parser = typeParser(paramSigs);
          var type;
@@ -95,7 +104,7 @@ var Util =
             throw "Cannot parse return type";
          if (parser() != null)
             throw "Extra input at end of signature string";
-         return {"params":paramTDs, "return":returnType};
+         return {name:name, paramTypes:paramTDs, returnType:returnType};
       }
 
       function add_package(pieces) {
@@ -135,7 +144,7 @@ var Util =
             function cont2(type) {
                return type.newInstance(cont3, exc);
             }
-            result Util.resolveClass("java.lang.String", cont2, exc);
+            return Util.resolveClass("java.lang.String", cont2, exc);
          };
       }
 
@@ -170,7 +179,7 @@ var Util =
                   function cont4() {
                      return exc(obj);
                   }
-                  return obj.init_Ljava$Dlang$DStringE_([javastr], cont4, exc);
+                  return obj["<init>(Ljava/lang/String;)V"]([javastr], cont4, exc);
                }
                return type.newInstance(cont3, exc);
             }
@@ -186,7 +195,7 @@ var Util =
                function cont4() {
                   return exc(obj);
                }
-               return obj.init__([], cont4, exc);
+               return obj["<init>()V"]([], cont4, exc);
             }
             return type.newInstance(cont3, exc);
          }
@@ -361,15 +370,15 @@ var Util =
       }
 
       var native_methods = {};
-      function invoke_native(obj, classname, methodname, args, cont, exc) {
+      function invoke_native(obj, classname, signature, args, cont, exc) {
          if (classname in native_methods) {
             var classdata = native_methods[classname];
-            if (methodname in classdata) {
-               var func = classdata[methodname];
+            if (signature in classdata) {
+               var func = classdata[signature];
                return func.apply(obj, [args, cont, exc]);
             }
          }
-         return resolveAndThrowString("java.lang.UnsatisfiedLinkError", classname + "." + methodname, exc);
+         return resolveAndThrowString("java.lang.UnsatisfiedLinkError", classname + "." + signature, exc);
       }
 
       // func should take ([args], cont, exc)
@@ -427,16 +436,16 @@ var Util =
          }
       }
 
-      // object, [{type:class_or_null, handler:exc}], exc
+      // exception, [{type:classname_or_null, cont:continuation}], exc
       function catch_exception(exception, catchtypes, exc) {
          if (!((typeof exception) == "object" && "thisclass" in exception)) {
             throw "JavaScript exception: " + exception;
          }
          for (var i = 0; i < catchtypes.length; i++) {
             var type = catchtypes[i].type;
-            var handler = catchtypes[i].handler;
+            var cont = catchtypes[i].cont;
             if (type == null || instance_of(exception, type)) {
-               return handler(exception);
+               return cont;
             }
          }
          return exc(exception);
@@ -511,26 +520,25 @@ var Util =
 
       /*
         info = {
-        classname : string,
-        superclass : type or null,
-        interfaces : [type],
-        fields : {
-        name : initvalue
-        },
-        static_fields : {
-        name : initvalue,
-        ...
-        },
-        methods : {
-        name : func,
-        // includes <init>
-        ...
-        },
-        static_methods : {
-        name : func
-        // includes <clinit>
-        ...
-        }
+          classname : string,
+          superclass : type or null,
+          interfaces : [type],
+          fields : {
+            name : initvalue
+          },
+          static_fields : {
+            name : initvalue,
+          },
+          methods : {
+            name : func,
+            <init>
+            ...
+          },
+          static_methods : {
+            name : func
+            // includes <clinit>
+            ...
+          }
         }
       */
       function defineClass(info) {
@@ -553,49 +561,88 @@ var Util =
             }
          }
 
-         if (superclass) {
-            // this should NOT initialize superclass
-            type.prototype = new superclass();
-         }
-         type.prototype.thisclass = type;
-         type.isInterface = isInterface ? Util.TRUE : Util.FALSE;
-         type.superclass = superclass;
-         type.classname = classname;
-         type.newInstance = function(cont, exc) {
-            function cont2() {
-               return cont(new type());
+         // TODO
+         function initCont(superclass, interfaces, cont) {
+            if (superclass) {
+               // this should NOT initialize superclass
+               type.prototype = new superclass();
             }
-            return Util.initialize(type, cont2, exc);
-         };
-         type.modifiers = modifiers;
-         type.memberinfo = memberinfo;
-         type.prototype.toString = function() {
-            return "<instance of " + classname + ">";
-         };
-         type.interfaces = interfaces;
-         type.initialized = false;
-         type.isArray = FALSE;
-         type.isPrimitive = FALSE;
-         type.toString = function() {
-            return "<type " + classname + ">";
-         };
-
-         // initialize static fields
-         for (var fieldname in static_fields) {
-            type[fieldname] = static_fields[fieldname];
+            type.prototype.thisclass = type;
+            type.isInterface = isInterface ? Util.TRUE : Util.FALSE;
+            type.superclass = superclass;
+            type.classname = classname;
+            type.newInstance = function(cont, exc) {
+               function cont2() {
+                  return cont(new type());
+               }
+               return Util.initialize(type, cont2, exc);
+            };
+            type.modifiers = modifiers;
+            type.memberinfo = memberinfo;
+            type.prototype.toString = function() {
+               return "<instance of " + classname + ">";
+            };
+            type.interfaces = interfaces;
+            type.initialized = false;
+            type.isArray = FALSE;
+            type.isPrimitive = FALSE;
+            type.toString = function() {
+               return "<type " + classname + ">";
+            };
+            
+            // initialize static fields
+            for (var fieldname in static_fields) {
+               type[fieldname] = static_fields[fieldname];
+            }
+            
+            // initialize methods
+            for (var methodname in methods) {
+               type.prototype[methodname] = methods[methodname];
+            }
+            
+            // initialize static methods
+            for (var methodname in static_methods) {
+               type[methodname] = static_methods[methodname];
+            }
+            
+            return cont(type);
          }
 
-         // initialize methods
-         for (var methodname in methods) {
-            type.prototype[methodname] = methods[methodname];
+         
+         function resolveInterfaces(cont, exc) {
+            var interfaceTypes = [];
+            function index(i) {
+               if (i < interfaces.length) {
+                  function cont2(type) {
+                     interfaceTypes.push(type);
+                     return index(i+1);
+                  }
+                  return Util.resolveClass(interfaces[i], cont2, exc);
+               } else {
+                  return cont(interfaceTypes);
+               }
+            }
+            return index(0);
          }
 
-         // initialize static methods
-         for (var methodname in static_methods) {
-            type[methodname] = static_methods[methodname];
+         function resolveSuper(cont, exc) {
+            if (superclass)
+               return Util.resolveClass(superclass, cont, exc);
+            else
+               return cont(null);
          }
 
-         return type;
+         function resolveAll(cont, exc) {
+            function contSuper(superType) {
+               function contInterfaces(interfaceTypes) {
+                  return initCont(superType, interfaceTypes, cont);
+               }
+               return resolveInterfaces(contInterfaces, exc);
+            }
+            return resolveSuper(contSuper, exc);
+         }
+         
+         return resolveAll;
       }
 
       ///////////// CPS UP TO HERE /////////////////
@@ -747,7 +794,9 @@ var Util =
          nameToType : nameToType,
          resolveClass : resolveClass,
          setClassLoader : setClassLoader,
-         resolveAndThrow : resolveAndThrow
+         resolveAndThrow : resolveAndThrow,
+         parseFieldSignature : parseFieldSignature,
+         parseMethodSignature : parseMethodSignature
       };
       return result;
    })();

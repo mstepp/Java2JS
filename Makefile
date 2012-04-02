@@ -18,9 +18,10 @@ js/%.js:	$(JAVA_CLASS)
 	CLASSNAME="$${CLASSNAME%.js}" ; \
 	CLASSNAME="$${CLASSNAME#js/}" ; \
 	CLASSNAME="$${CLASSNAME//\$$/\$$\$$}" ; \
-	mkdir -m 0777 -p `dirname '$@'` ; \
+	mkdir -p `dirname '$@'` ; \
 	$(MAKE) -s SHELL=$(SHELL) "CLASS=$$CLASSNAME.class" compile > '$@' ; \
-	chmod a+r '$@' ;
+	chmod a+r '$@' ; \
+	find js/ -type d -exec chmod a+rwx {} \; ;
 
 # needs LISTFILE
 compilefile:
@@ -77,7 +78,7 @@ test_arithmetic:
 	echo '    <script type="text/javascript">' >> test.html ;
 	echo '       window.onload = function() {' >> test.html ;
 	echo '         var args = new ArrayObject(0, new ArrayType(Util.resolveClass("java.lang.String")));' >> test.html ;
-	echo '         Util.resolveClass("java2js.test.TestJS").method_main_V_ALjava$$Dlang$$DStringE_(args);' >> test.html ;
+	echo '         Util.resolveClass("java2js.test.TestJS")["main([Ljava/lang/String;)V"](args);' >> test.html ;
 	echo '       };' >> test.html ;
 	echo '    </script>' >> test.html ;
 	$(MAKE) -s OUTPUT=test.html testfooter ;
@@ -86,7 +87,6 @@ test_arithmetic:
 
 compile_factorial:
 	$(MAKE) -s LISTFILE=packages/factorial compilefile ;
-	chmod -R a+r js/ ;
 	find js/ -type d -exec chmod a+rx {} \;
 
 test_factorial:
@@ -94,7 +94,7 @@ test_factorial:
 	echo '    <script type="text/javascript">' >> test.html ;
 	echo '       window.onload = function() {' >> test.html ;
 	echo '         var args = new ArrayObject(0, new ArrayType(Util.resolveClass("java.lang.String")));' >> test.html ;
-	echo '         Util.resolveClass("java2js.test.Factorial").method_main_V_ALjava$$Dlang$$DStringE_(args);' >> test.html ;
+	echo '         Util.resolveClass("java2js.test.Factorial")["main([Ljava/lang/String;)V"](args);' >> test.html ;
 	echo '       };' >> test.html ;
 	echo '    </script>' >> test.html ;
 	$(MAKE) -s OUTPUT=test.html testfooter ;
@@ -107,19 +107,20 @@ compile_heart:
 
 test_heart:
 	$(MAKE) -s OUTPUT=test.html LISTFILE=packages/heart testheader ;
+	echo '    <script type="text/javascript" src="src/heartnative.js"></script>' >> test.html ;
 	echo '    <script type="text/javascript">' >> test.html ;
 	echo '       window.onload = function() {' >> test.html ;
 	echo '         try {' >> test.html ;
 	echo '           var animator = Util.resolveClass("heart.Animator").newInstance();' >> test.html ;
-	echo '           animator.init_Ljava$$Dlang$$DStringE_(Util.js2java_string("canvas"));' >> test.html ;
+	echo '           animator["<init>(Ljava/lang/String;)V"](Util.js2java_string("canvas"));' >> test.html ;
 	echo '           var frac = Util.resolveClass("heart.CFractal").newInstance();' >> test.html ;
-	echo '           frac.init_Lheart$$D$$AnimatorE_(animator);' >> test.html ;
-	echo '           frac.method_run_V_I_(new Integer(15));' >> test.html ;
+	echo '           frac["<init>(Lheart/Animator;)V"](animator);' >> test.html ;
+	echo '           frac["run(I)V"](new Integer(15));' >> test.html ;
 	echo '         } catch(exception) {' >> test.html ;
 	echo '           if (!((typeof exception) == "object" && ("thisclass" in exception))) {' >> test.html ;
 	echo '             alert("JavaScript exception: " + exception);' >> test.html ;
 	echo '           } else {' >> test.html ;
-	echo '             alert(exception + " " + Util.java2js_string(exception.method_toString_Ljava$$Dlang$$DStringE__()));' >> test.html ;
+	echo '             alert(exception + " " + Util.java2js_string(exception["toString()Ljava/lang/String;"]()));' >> test.html ;
 	echo '           }' >> test.html ;
 	echo '         }' >> test.html ;
 	echo '       };' >> test.html ;
@@ -148,15 +149,15 @@ test_bf:
 	echo '       window.onload = function() {' >> test.html ;
 	echo '         document.getElementById("button").onclick = function() {' >> test.html ;
 	echo '           var program = document.getElementById("program").value;' >> test.html ;
-	echo '           program = Util.resolveClass("bf.Parser").method_parse_Lbf$$DCommandE_Ljava$$Dlang$$DStringE_(Util.js2java_string(program));' >> test.html ;
+	echo '           program = Util.resolveClass("bf.Parser")["parse(Ljava/lang/String;)Lbf/Command;"](Util.js2java_string(program));' >> test.html ;
 	echo '           var jsio = Util.resolveClass("bf.JSIO").newInstance();' >> test.html ;
 	echo '           var input = document.getElementById("input").value;' >> test.html ;
-	echo '           jsio.init_Ljava$$Dlang$$DStringELjava$$Dlang$$DStringE_(Util.js2java_string(input), Util.js2java_string("output"));' >> test.html ;
+	echo '           jsio["<init>(Ljava/lang/String;Ljava/lang/String;)V"](Util.js2java_string(input), Util.js2java_string("output"));' >> test.html ;
 	echo '           var state = Util.resolveClass("bf.State").newInstance();' >> test.html ;
-	echo '           state.init_Lbf$$DIOEI_(jsio, new Integer(1000));' >> test.html ;
+	echo '           state["<init>(Lbf/IO;I)V"](jsio, new Integer(1000));' >> test.html ;
 	echo '           var interpreter = Util.resolveClass("bf.Interpreter").newInstance();' >> test.html ;
-	echo '           interpreter.init_Lbf$$DCommandE_(program);' >> test.html ;
-	echo '           interpreter.method_interpret_V_Lbf$$DStateE_(state);' >> test.html ;
+	echo '           interpreter["<init>(Lbf/Command;)V"](program);' >> test.html ;
+	echo '           interpreter["interpret(Lbf/State;)V"](state);' >> test.html ;
 	echo '         };' >> test.html ;
 	echo '       };' >> test.html ;
 	echo '    </script>' >> test.html ;
@@ -183,10 +184,10 @@ test_lambda:
 	echo '         var output = document.getElementById("output");' >> test.html ;
 	echo '         document.getElementById("button").onclick = function() {' >> test.html ;
 	echo '           var jsprinter = Util.resolveClass("lambda.JSPrinter").newInstance();' >> test.html ;
-	echo '           jsprinter.init__();' >> test.html ;
+	echo '           jsprinter["<init>()V"]();' >> test.html ;
 	echo '           jsprinter.textarea = output;' >> test.html ;
-	echo '           output.value += Util.java2js_string(Util.resolveClass("lambda.Functions").field_ISZ$$ERO_Llambda$$D$$ExpressionE.method_dump_V_Llambda$$DPrinterE_(jsprinter);' >> test.html ;
-#	echo '           Util.resolveClass("lambda.Main").method_run_V_Llambda$$DPrinterE_(jsprinter);' >> test.html ;
+	echo '           output.value += Util.java2js_string(Util.resolveClass("lambda.Functions")["ISZERO.Llambda/Expression;"]["dump(Llambda/Printer;)V"](jsprinter);' >> test.html ;
+#	echo '           Util.resolveClass("lambda.Main")["run(Llambda/Printer;)V"](jsprinter);' >> test.html ;
 	echo '         };' >> test.html ;
 	echo '       };' >> test.html ;
 	echo '    </script>' >> test.html ;

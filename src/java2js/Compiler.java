@@ -15,15 +15,13 @@ public class Compiler {
    private final ClassGen classgen;
    private final String[] pieces;
    private final String unqualified;
-   private final NameMunger munger;
    private final Logger logger;
 
-   public Compiler(ClassGen _classgen, NameMunger _munger, Logger _logger) {
+   public Compiler(ClassGen _classgen, Logger _logger) {
       this.classgen = _classgen;
       String classname = this.classgen.getClassName();
       this.pieces = classname.split("[.]");
       this.unqualified = pieces[pieces.length-1];
-      this.munger = _munger;
       this.logger = _logger;
    }
 
@@ -94,7 +92,7 @@ public class Compiler {
          }
       };
       Printer inside = out.tab("  ");
-      InstructionCompiler compiler = new InstructionCompiler(inside, this.classgen, this.munger, handle2index);
+      InstructionCompiler compiler = new InstructionCompiler(inside, this.classgen, handle2index);
       for (int i = 0; i < blocks.size(); i++) {
          CFG.Block block = blocks.get(i);
          out.println("blocks.push(function() { // block %s", i);
@@ -150,17 +148,10 @@ public class Compiler {
       for (int i = 0; i < length; i++) {
          Method method = methods.get(i);
 
-         String munged;
-         if (method.getName().equals("<init>")) {
-            munged = this.munger.mungeInit(this.classgen.getClassName(), method.getArgumentTypes());
-         } else if (method.getName().equals("<clinit>")) {
-            munged = this.munger.mungeClinit(this.classgen.getClassName());
-         } else {
-            munged = this.munger.mungeMethodName(this.classgen.getClassName(), method.getName(), method.getReturnType(), method.getArgumentTypes(), method.isStatic());
-         }
+         String munged = method.getName() + method.getSignature();
          String argstr = getArgStr(method);
 
-         out.println("%s : function(%s) {", munged, argstr);
+         out.println("\"%s\" : function(%s) {", munged, argstr);
          
          if (method.isNative()) {
             inside.println("return Util.invoke_native(%s, \"%s\", \"%s\", [%s]);", 
@@ -240,25 +231,18 @@ public class Compiler {
          // memberinfo
          Map<String,Integer> member2modifiers = new HashMap<String,Integer>();
          for (Field field : fields) {
-            String munged = this.munger.mungeFieldName(classname, field.getName(), field.getType(), field.isStatic());
+            String munged = field.getName() + "." + field.getSignature();
             member2modifiers.put(munged, field.getModifiers());
          }
          for (Method method : methods) {
-            String munged;
-            if (method.getName().equals("<init>")) {
-               munged = this.munger.mungeInit(this.classgen.getClassName(), method.getArgumentTypes());
-            } else if (method.getName().equals("<clinit>")) {
-               munged = this.munger.mungeClinit(this.classgen.getClassName());
-            } else {
-               munged = this.munger.mungeMethodName(this.classgen.getClassName(), method.getName(), method.getReturnType(), method.getArgumentTypes(), method.isStatic());
-            }
+            String munged = method.getName() + method.getSignature();
             member2modifiers.put(munged, method.getModifiers());
          }
 
          itemout.println("memberinfo : {");
          for (Iterator<Map.Entry<String,Integer>> iter = member2modifiers.entrySet().iterator(); iter.hasNext(); ) {
             Map.Entry<String,Integer> entry = iter.next();
-            itemout.println("  %s : 0x%s%s", entry.getKey(), Integer.toHexString(entry.getValue()), iter.hasNext() ? "," : "");
+            itemout.println("  \"%s\" : 0x%s%s", entry.getKey(), Integer.toHexString(entry.getValue()), iter.hasNext() ? "," : "");
          }
          itemout.println("},");
 
@@ -275,8 +259,8 @@ public class Compiler {
             for (Iterator<Field> iter = myfields.iterator(); iter.hasNext(); ) {
                Field field = iter.next();
                if (!field.isStatic()) {
-                  String munged = this.munger.mungeFieldName(classname, field.getName(), field.getType(), false);
-                  memberout.println("%s : %s%s", 
+                  String munged = field.getName() + "." + field.getSignature();
+                  memberout.println("\"%s\" : %s%s", 
                                     munged,
                                     initValue(field.getSignature()),
                                     iter.hasNext() ? "," : "");
@@ -301,7 +285,7 @@ public class Compiler {
             for (Iterator<Field> iter = myfields.iterator(); iter.hasNext(); ) {
                Field field = iter.next();
                if (field.isStatic()) {
-                  String munged = this.munger.mungeFieldName(classname, field.getName(), field.getType(), true);
+                  String munged = field.getName() + "." + field.getSignature();
                   String initValue = initValue(field.getSignature());
                   ConstantValue cv = field.getConstantValue();
                   if (cv != null) {
@@ -330,7 +314,7 @@ public class Compiler {
                      }
                   }
 
-                  memberout.println("%s : %s%s", 
+                  memberout.println("\"%s\" : %s%s", 
                                     munged, 
                                     initValue,
                                     iter.hasNext() ? "," : "");

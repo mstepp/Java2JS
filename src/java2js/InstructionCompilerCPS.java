@@ -8,17 +8,14 @@ public class InstructionCompilerCPS {
    private final ClassGen classgen;
    private final ConstantPoolGen cpg;
    private final String unqualified;
-   private final NameMunger munger;
    private final Function<InstructionHandle,Integer> h2i;
 
    public InstructionCompilerCPS(Printer _out, 
                                  ClassGen _classgen,
-                                 NameMunger _munger,
                                  Function<InstructionHandle,Integer> _h2i) {
       this.out = _out;
       this.classgen = _classgen;
       this.h2i = _h2i;
-      this.munger = _munger;
       this.cpg = this.classgen.getConstantPool();
 
       String unqualified;
@@ -44,33 +41,8 @@ public class InstructionCompilerCPS {
    private void di(String name) {
       inst("%s(last, exc)", name);
    }
-
-   private String makeTD(Type type) {
-      if (type instanceof ArrayType) {
-         return String.format("new ArrayTD(%s)", makeTD(((ArrayType)type).getElementType()));
-      } else if (type instanceof ObjectType) {
-         return String.format("new ClassTD(\"%s\")", ((ObjectType)type).getClassName());
-      } else if (type.equals(Type.BOOLEAN)) {
-         return "PrimitiveTD.BOOLEAN";
-      } else if (type.equals(Type.BYTE)) {
-         return "PrimitiveTD.BYTE";
-      } else if (type.equals(Type.CHAR)) {
-         return "PrimitiveTD.CHAR";
-      } else if (type.equals(Type.DOUBLE)) {
-         return "PrimitiveTD.DOUBLE";
-      } else if (type.equals(Type.FLOAT)) {
-         return "PrimitiveTD.FLOAT";
-      } else if (type.equals(Type.INT)) {
-         return "PrimitiveTD.INT";
-      } else if (type.equals(Type.LONG)) {
-         return "PrimitiveTD.LONG";
-      } else if (type.equals(Type.SHORT)) {
-         return "PrimitiveTD.SHORT";
-      } else if (type.equals(Type.VOID)) {
-         return "PrimitiveTD.VOID";
-      } else {
-         throw new RuntimeException("Invalid type: " + type);
-      }
+   private void dif(String name, int targetIndex, int ftIndex) {
+      inst("%s(blocks[%s], blocks[%s], exp)", name, targetIndex, ftIndex);
    }
 
    private String makeTypeObject(Type type) {
@@ -247,13 +219,16 @@ public class InstructionCompilerCPS {
          inst("bipush(%s, exc)", String.valueOf(((BIPUSH)inst).getValue().intValue()));
       }
       else if (inst instanceof GotoInstruction) {
-         println("last = frame[\"goto\"](succs[0], exc);");
+         InstructionHandle target = ((GotoInstruction)inst).getTarget();
+         println("last = frame[\"goto\"](blocks[%s], exc);", h2i.get(target));
       }
       else if (inst instanceof IfInstruction) {
-         compileIfInstruction((IfInstruction)inst);
+         compileIfInstruction(handle);
       }
       else if (inst instanceof JsrInstruction) {
-         inst("jsr(succs[0], succs[1], exc)");
+         int targetIndex = h2i.get(((JsrInstruction)inst).getTarget());
+         int fallThroughIndex = h2i.get(handle.getNext());
+         inst("jsr(blocks[%s], blocks[%s], exc)", targetIndex, fallThroughIndex);
       }
       else if (inst instanceof Select) {
          println("last = function() {");
@@ -263,9 +238,9 @@ public class InstructionCompilerCPS {
          InstructionHandle[] targets = select.getTargets();
          int i;
          for (i = 0; i < matches.length; i++) {
-            println("      case %s: return succs[%s];", matches[i], i);
+            println("      case %s: return blocks[%s];", matches[i], h2i.get(targets[i]));
          }
-         println("      default: return succs[%s];", i);
+         println("      default: return blocks[%s];", h2i.get(targets[i]));
          println("   }");
          println("};");
       }
@@ -327,48 +302,32 @@ public class InstructionCompilerCPS {
          Type type = getfield.getFieldType(cpg);
          String classname = getfield.getReferenceType(cpg).toString();
          String fieldname = getfield.getFieldName(cpg);
-         String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
-         if (type.equals(Type.DOUBLE) || type.equals(Type.LONG)) {
-            inst("getfield(\"%s\", true, last, exc)", munged);
-         } else {
-            inst("getfield(\"%s\", false, last, exc)", munged);
-         }
+         String signature = getfield.getSignature(cpg);
+         inst("getfield(\"%s\", last, exc)", fieldname + "." + signature);
       }
       else if (inst instanceof GETSTATIC) {
          GETSTATIC getstatic = (GETSTATIC)inst;
          Type type = getstatic.getFieldType(cpg);
          String classname = getstatic.getReferenceType(cpg).toString();
          String fieldname = getstatic.getFieldName(cpg);
-         String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
-         if (type.equals(Type.DOUBLE) || type.equals(Type.LONG)) {
-            inst("getstatic(\"%s\", \"%s\", true, last, exc)", classname, munged);
-         } else {
-            inst("getstatic(\"%s\", \"%s\", false, last, exc)", classname, munged);
-         }
+         String signature = getstatic.getSignature(cpg);
+         inst("getstatic(\"%s\", \"%s\", last, exc)", classname, fieldname + "." + signature);
       }
       else if (inst instanceof PUTFIELD) {
          PUTFIELD putfield = (PUTFIELD)inst;
          Type type = putfield.getFieldType(cpg);
          String classname = putfield.getReferenceType(cpg).toString();
          String fieldname = putfield.getFieldName(cpg);
-         String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
-         if (type.equals(Type.DOUBLE) || type.equals(Type.LONG)) {
-            inst("putfield(\"%s\", true, last, exc)", munged);
-         } else {
-            inst("putfield(\"%s\", false, last, exc)", munged);
-         }
+         String signature = putfield.getSignature(cpg);
+         inst("putfield(\"%s\", last, exc)", fieldname + "." + signature);
       }
       else if (inst instanceof PUTSTATIC) {
          PUTSTATIC putstatic = (PUTSTATIC)inst;
          Type type = putstatic.getFieldType(cpg);
          String classname = putstatic.getReferenceType(cpg).toString();
          String fieldname = putstatic.getFieldName(cpg);
-         String munged = this.munger.mungeFieldName(classname, fieldname, type, false);
-         if (type.equals(Type.DOUBLE) || type.equals(Type.LONG)) {
-            inst("putstatic(\"%s\", \"%s\", true, last, exc)", classname, munged);
-         } else {
-            inst("putstatic(\"%s\", \"%s\", false, last, exc)", classname, munged);
-         }
+         String signature = putstatic.getSignature(cpg);
+         inst("putstatic(\"%s\", \"%s\", last, exc)", classname, fieldname + "." + signature);
       }
       else if (inst instanceof INVOKESPECIAL) {
          InvokeInstruction invoke = (InvokeInstruction)inst;
@@ -378,21 +337,9 @@ public class InstructionCompilerCPS {
          if (type instanceof ArrayType) {
             type = Type.OBJECT;
          }
-
          String methodname = invoke.getMethodName(cpg);
-         String munged;
-         if (methodname.equals("<init>")) {
-            munged = this.munger.mungeInit(type.toString(), args);
-         } else {
-            munged = this.munger.mungeMethodName(type.toString(),
-                                                 methodname,
-                                                 returnType,
-                                                 args,
-                                                 false);
-         }
-
-         inst("invokespecial([%s], %s, \"%s\", \"%s\", last, exc)", 
-              getArgTDs(args), makeTD(returnType), type.toString(), munged);
+         String signature = invoke.getSignature(cpg);
+         inst("invokespecial(\"%s\", \"%s\", last, exc)", type.toString(), methodname + signature);
       }
       else if (inst instanceof INVOKEINTERFACE ||
                inst instanceof INVOKEVIRTUAL) {
@@ -404,33 +351,18 @@ public class InstructionCompilerCPS {
             type = Type.OBJECT;
          }
          String methodname = invoke.getMethodName(cpg);
-         String munged;
-         if (methodname.equals("<init>")) {
-            munged = this.munger.mungeInit(type.toString(), invoke.getArgumentTypes(cpg));
-         } else {
-            munged = this.munger.mungeMethodName(type.toString(),
-                                                 methodname,
-                                                 returnType,
-                                                 args,
-                                                 false);
-         }
-
+         String signature = invoke.getSignature(cpg);
          String instruction = (inst instanceof INVOKEVIRTUAL) ? "invokevirtual" : "invokeinterface";
-         inst("%s([%s], %s, \"%s\", last, exc)",
-              instruction, getArgTDs(args), makeTD(returnType), munged);
+         inst("%s(\"%s\", last, exc)", instruction, methodname + signature);
       }
       else if (inst instanceof INVOKESTATIC) {
          InvokeInstruction invoke = (InvokeInstruction)inst;
          Type[] args = invoke.getArgumentTypes(cpg);
          Type returnType = invoke.getReturnType(cpg);
          String classname = invoke.getReferenceType(cpg).toString();
-         String munged = this.munger.mungeMethodName(classname,
-                                                     invoke.getMethodName(cpg),
-                                                     returnType,
-                                                     args,
-                                                     false);
-         inst("invokestatic([%s], %s, \"%s\", \"%s\", last, exc)",
-              getArgTDs(args), makeTD(returnType), classname, munged);
+         String methodname = invoke.getMethodName(cpg);
+         String signature = invoke.getSignature(cpg);
+         inst("invokestatic(\"%s\", \"%s\", last, exc)", classname, methodname + signature);
       }
       else if (inst instanceof INSTANCEOF) {
          Type type = ((INSTANCEOF)inst).getType(cpg);
@@ -561,14 +493,14 @@ public class InstructionCompilerCPS {
       else if (inst instanceof ARETURN ||
                inst instanceof IRETURN ||
                inst instanceof FRETURN) {
-         di("return1");
+         inst("return1(cont, exc)");
       }
       else if (inst instanceof DRETURN ||
                inst instanceof LRETURN) {
-         di("return2");
+         inst("return2(cont, exc)");
       }
       else if (inst instanceof RETURN) {
-         println("last = frame[\"return\"](last, exc);");
+         println("last = frame[\"return\"](cont, exc);");
       }
       else if (inst instanceof SIPUSH) {
          short value = ((SIPUSH)inst).getValue().shortValue();
@@ -606,58 +538,58 @@ public class InstructionCompilerCPS {
       }
    }
 
-   private void dif(String name) {
-      inst("%s(succs[0], succs[1], exp)", name);
-   }
+   private void compileIfInstruction(InstructionHandle handle) throws CompilationException {
+      IfInstruction inst = (IfInstruction)handle.getInstruction();
+      int tIndex = h2i.get(inst.getTarget());
+      int fIndex = h2i.get(handle.getNext());
 
-   private void compileIfInstruction(IfInstruction inst) throws CompilationException {
       if (inst instanceof IF_ACMPEQ) {
-         dif("if_acmpeq");
+         dif("if_acmpeq", tIndex, fIndex);
       } 
       else if (inst instanceof IF_ACMPNE) {
-         dif("if_acmpne");
+         dif("if_acmpne", tIndex, fIndex);
       } 
       else if (inst instanceof IF_ICMPEQ) {
-         dif("if_icmpeq");
+         dif("if_icmpeq", tIndex, fIndex);
       }
       else if (inst instanceof IF_ICMPNE) {
-         dif("if_icmpne");
+         dif("if_icmpne", tIndex, fIndex);
       }
       else if (inst instanceof IF_ICMPGE) {
-         dif("if_icmpge");
+         dif("if_icmpge", tIndex, fIndex);
       }
       else if (inst instanceof IF_ICMPGT) {
-         dif("if_icmpgt");
+         dif("if_icmpgt", tIndex, fIndex);
       }
       else if (inst instanceof IF_ICMPLE) {
-         dif("if_icmple");
+         dif("if_icmple", tIndex, fIndex);
       }
       else if (inst instanceof IF_ICMPLT) {
-         dif("if_icmplt");
+         dif("if_icmplt", tIndex, fIndex);
       }
       else if (inst instanceof IFEQ) {
-         dif("ifeq");
+         dif("ifeq", tIndex, fIndex);
       }
       else if (inst instanceof IFNE) {
-         dif("ifne");
+         dif("ifne", tIndex, fIndex);
       }
       else if (inst instanceof IFGE) {
-         dif("ifge");
+         dif("ifge", tIndex, fIndex);
       }
       else if (inst instanceof IFGT) {
-         dif("ifgt");
+         dif("ifgt", tIndex, fIndex);
       }
       else if (inst instanceof IFLE) {
-         dif("ifle");
+         dif("ifle", tIndex, fIndex);
       }
       else if (inst instanceof IFLT) {
-         dif("iflt");
+         dif("iflt", tIndex, fIndex);
       }
       else if (inst instanceof IFNULL) {
-         dif("ifnull");
+         dif("ifnull", tIndex, fIndex);
       }
       else if (inst instanceof IFNONNULL) {
-         dif("ifnonnull");
+         dif("ifnonnull", tIndex, fIndex);
       }
       else {
          throw new CompilationException("Unsupported instruction: " + inst.getClass());
@@ -684,23 +616,5 @@ public class InstructionCompilerCPS {
          }
       }
       return result.toString();
-   }
-
-   private String getArgTDs(Type[] params) {
-      StringBuilder builder = new StringBuilder();
-      for (int i = 0; i < params.length; i++) {
-         if (i>0) builder.append(", ");
-         builder.append(makeTD(params[i]));
-      }
-      return builder.toString();
-   }
-
-   private String getArgStr(int length) {
-      StringBuilder argstr = new StringBuilder();
-      for (int i = 0; i < length; i++) {
-         if (i>0) argstr.append(", ");
-         argstr.append(String.format("arg%s", i));
-      }
-      return argstr.toString();
    }
 }

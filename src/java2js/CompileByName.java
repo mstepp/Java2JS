@@ -25,7 +25,7 @@ public class CompileByName {
       }
       ClassParser parser = new ClassParser(in, args[0]);
       JavaClass clazz = parser.parse();
-      Compiler compiler = new Compiler(new ClassGen(clazz), new DefaultNameMunger(), logger);
+      Compiler compiler = new Compiler(new ClassGen(clazz), logger);
       compiler.compile(new DefaultPrinter(System.out));
    }
 }

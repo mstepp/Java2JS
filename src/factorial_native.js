@@ -22,7 +22,7 @@ Util.register_native("java.lang.String", "intern()Ljava/lang/String;",
                      function() {
                         return this;
                      });
-Util.register_native("java.lang.System", "arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V", 
+Util.register_native("java.lang.System", "arraycopy(Ljava/lang/ObjectlILjava/lang/Object;II)V", 
                      function(src, srcPos, dest, destPos, length) {
                         length = length.toJS();
                         srcPos = srcPos.toJS();

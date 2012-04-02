@@ -43,3 +43,8 @@ java/lang/reflect/Array
 java/lang/ClassCastException
 java/util/Iterator
 heart/CFractal
+java/lang/StringValue
+java/lang/UnsatisfiedLinkError
+java/lang/StringBuilder
+java/lang/AbstractStringBuilder
+java/lang/Appendable

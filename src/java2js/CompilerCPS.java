@@ -15,15 +15,13 @@ public class CompilerCPS {
    private final ClassGen classgen;
    private final String[] pieces;
    private final String unqualified;
-   private final NameMunger munger;
    private final Logger logger;
 
-   public CompilerCPS(ClassGen _classgen, NameMunger _munger, Logger _logger) {
+   public CompilerCPS(ClassGen _classgen, Logger _logger) {
       this.classgen = _classgen;
       String classname = this.classgen.getClassName();
       this.pieces = classname.split("[.]");
       this.unqualified = pieces[pieces.length-1];
-      this.munger = _munger;
       this.logger = _logger;
    }
 
@@ -56,34 +54,12 @@ public class CompilerCPS {
    }
 
    private void methodStart(Printer inside, Method method) {
-      inside.println("var stack = [];");
-
       StringBuilder localstr = new StringBuilder();
       int count = 0;
       if (!method.isStatic()) {
-         localstr.append("this");
-         count++;
+         inside.println("args.unshift(this);");
       }
-      Type[] argtypes = method.getArgumentTypes();
-      for (int i = 0; i < argtypes.length; i++) {
-         if (count>0) localstr.append(", ");
-         localstr.append("arg" + i);
-         count++;
-         if (argtypes[i].equals(Type.DOUBLE) || argtypes[i].equals(Type.LONG)) {
-            localstr.append(", arg" + i);
-            count++;
-         }
-      }
-      while (count < method.getCode().getMaxLocals()) {
-         if (count>0) localstr.append(", ");
-         localstr.append("null");
-         count++;
-      }
-      inside.println("var locals = [%s];", localstr); 
-
-      inside.println("var return_value = null;");
-      inside.println("var blocks = [];");
-      inside.println("var blockIndex;");
+      inside.println("var frame = new Frame(args, %s);", method.getCode().getMaxLocals());
    }
 
    private void compileCFG(Printer out, final CFG cfg) throws CompilationException {
@@ -94,53 +70,48 @@ public class CompilerCPS {
          }
       };
       Printer inside = out.tab("  ");
-      InstructionCompiler compiler = new InstructionCompiler(inside, this.classgen, this.munger, handle2index);
+      out.println("var blocks = [];");
+      InstructionCompilerCPS compiler = new InstructionCompilerCPS(inside, this.classgen, handle2index);
       for (int i = 0; i < blocks.size(); i++) {
          CFG.Block block = blocks.get(i);
          out.println("blocks.push(function() { // block %s", i);
-         boolean hasExceptions = !block.exceptions().isEmpty();
 
-         if (hasExceptions) {
-            inside.println("try {");
-         }
-
-         // print in either case
-         for (InstructionHandle curr = block.getStart(); ; curr = curr.getNext()) {
-            compiler.compileInstruction(curr);
-            if (curr == block.getEnd())
-               break;
-         }
          if (!block.hasTerminator()) {
             inside.println("// fallthrough");
-            inside.println("blockIndex = %s;", handle2index.get(block.getEnd().getNext()));
+            inside.println("var last = blocks[%s];", handle2index.get(block.getEnd().getNext()));
+         } else {
+            inside.println("var last;");
          }
 
-         if (hasExceptions) {
-            inside.println("} catch (exception) {");
+         if (!block.exceptions().isEmpty()) {
+            inside.println("var outerexc = exc;");
+            inside.println("var exc = function(ex) {");
+            inside.println("  frame.exception(ex);");
+            
             StringBuilder exlist = new StringBuilder();
             for (CFG.ExceptionTarget target : block.exceptions()) {
                int blockIndex = handle2index.get(target.target.getStart());
                if (exlist.length() > 0) exlist.append(", ");
                if (target.type == null)
-                  exlist.append(String.format("{type:null, index:%s}", blockIndex));
+                  exlist.append(String.format("{type:null, cont:blocks[%s]}", blockIndex));
                else
-                  exlist.append(String.format("{type:%s, index:%s}", resolve(target.type.getClassName()), blockIndex));
+                  exlist.append(String.format("{type:\"%s\", cont:blocks[%s]}", target.type.getClassName(), blockIndex));
             }
-            inside.println("  stack = [exception];");
-            inside.println("  blockIndex = Util.catch_exception(exception, [%s]);", exlist);
-            inside.println("}");
+            inside.println("  return Util.catch_exception(ex, [%s], outerexc);", exlist);
+            inside.println("};");
          }
 
+         // print in reverse order
+         for (InstructionHandle curr = block.getEnd(); ; curr = curr.getPrev()) {
+            compiler.compileInstruction(curr);
+            if (curr == block.getStart())
+               break;
+         }
+         inside.println("return last;");
          out.println("});");
       }
-      out.println("blockIndex = %s;", blocks.indexOf(cfg.getStart()));
-      out.println("while (blockIndex>=0) {");
-      out.println("   blocks[blockIndex]();");
-      out.println("}");
-   }
 
-   public static String resolve(String classname) {
-      return String.format("Util.resolveClass(\"%s\")", classname);
+      out.println("var start_block = blocks[%s];", handle2index.get(cfg.getStart().getStart()));
    }
 
    private void compileMethods(Printer out, List<Method> methods) throws CompilationException {
@@ -149,37 +120,28 @@ public class CompilerCPS {
       int length = methods.size();
       for (int i = 0; i < length; i++) {
          Method method = methods.get(i);
+         String signature = method.getSignature();
 
-         String munged;
-         if (method.getName().equals("<init>")) {
-            munged = this.munger.mungeInit(this.classgen.getClassName(), method.getArgumentTypes());
-         } else if (method.getName().equals("<clinit>")) {
-            munged = this.munger.mungeClinit(this.classgen.getClassName());
-         } else {
-            munged = this.munger.mungeMethodName(this.classgen.getClassName(), method.getName(), method.getReturnType(), method.getArgumentTypes(), method.isStatic());
-         }
-         String argstr = getArgStr(method);
-
-         out.println("%s : function(%s) {", munged, argstr);
+         out.println("\"%s\" : function(args, cont, exc) {", method.getName() + signature);
          
          if (method.isNative()) {
-            inside.println("return Util.invoke_native(%s, \"%s\", \"%s\", [%s]);", 
+            inside.println("return Util.invoke_native(%s, \"%s\", \"%s\", args, cont, exc);", 
                            method.isStatic() ? "null" : "this", 
                            this.classgen.getClassName(), 
-                           munged, 
-                           argstr);
+                           signature);
          } else if (method.isAbstract()) {
-            inside.println("Util.assertWithMessageException(false, \"Method %s.%s is abstract\", %s);", 
-                           this.classgen.getClassName(), munged, resolve("java.lang.AbstractMethodError"));
+            inside.println("return Util.assertWithMessageException(false, \"Method %s.%s is abstract\", \"%s\", cont, exc);", 
+                           this.classgen.getClassName(), signature, "java.lang.AbstractMethodError");
          } else {
-            if (method.isStatic() && !method.getName().equals("<clinit>")) {
-               inside.println("Util.initialize(this);"); // call clinit if needed
-            }
             methodStart(inside, method);
             MethodGen gen = new MethodGen(method, this.classgen.getClassName(), this.classgen.getConstantPool());
             CFG cfg = new CFG(gen.getInstructionList(), gen.getExceptionHandlers());
             compileCFG(inside, cfg);
-            inside.println("return return_value;");
+            if (method.isStatic() && !method.getName().equals("<clinit>")) {
+               inside.println("return Util.initialize(this, start_block, exc);"); // call clinit if needed
+            } else {
+               inside.println("return start_block;");
+            }
          }
 
          out.println("}%s", (i<length-1) ? "," : "");
@@ -222,7 +184,7 @@ public class CompilerCPS {
             // object
             itemout.println("superclass : null,");
          } else {
-            itemout.println("superclass : %s,", resolve(superclass));
+            itemout.println("superclass : \"%s\",", superclass);
          }
 
          // interfaces
@@ -230,7 +192,7 @@ public class CompilerCPS {
          StringBuilder interfaces = new StringBuilder();
          for (int i = 0; i < interfaceNames.length; i++) {
             if (i>0) interfaces.append(", ");
-            interfaces.append(String.format("%s", resolve(interfaceNames[i])));
+            interfaces.append(String.format("\"%s\"", interfaceNames[i]));
          }
          itemout.println("interfaces : [%s],", interfaces);
 
@@ -240,25 +202,16 @@ public class CompilerCPS {
          // memberinfo
          Map<String,Integer> member2modifiers = new HashMap<String,Integer>();
          for (Field field : fields) {
-            String munged = this.munger.mungeFieldName(classname, field.getName(), field.getType(), field.isStatic());
-            member2modifiers.put(munged, field.getModifiers());
+            member2modifiers.put(field.getName() + "." + field.getSignature(), field.getModifiers());
          }
          for (Method method : methods) {
-            String munged;
-            if (method.getName().equals("<init>")) {
-               munged = this.munger.mungeInit(this.classgen.getClassName(), method.getArgumentTypes());
-            } else if (method.getName().equals("<clinit>")) {
-               munged = this.munger.mungeClinit(this.classgen.getClassName());
-            } else {
-               munged = this.munger.mungeMethodName(this.classgen.getClassName(), method.getName(), method.getReturnType(), method.getArgumentTypes(), method.isStatic());
-            }
-            member2modifiers.put(munged, method.getModifiers());
+            member2modifiers.put(method.getName() + method.getSignature(), method.getModifiers());
          }
 
          itemout.println("memberinfo : {");
          for (Iterator<Map.Entry<String,Integer>> iter = member2modifiers.entrySet().iterator(); iter.hasNext(); ) {
             Map.Entry<String,Integer> entry = iter.next();
-            itemout.println("  %s : 0x%s%s", entry.getKey(), Integer.toHexString(entry.getValue()), iter.hasNext() ? "," : "");
+            itemout.println("  \"%s\" : 0x%s%s", entry.getKey(), Integer.toHexString(entry.getValue()), iter.hasNext() ? "," : "");
          }
          itemout.println("},");
 
@@ -275,9 +228,8 @@ public class CompilerCPS {
             for (Iterator<Field> iter = myfields.iterator(); iter.hasNext(); ) {
                Field field = iter.next();
                if (!field.isStatic()) {
-                  String munged = this.munger.mungeFieldName(classname, field.getName(), field.getType(), false);
-                  memberout.println("%s : %s%s", 
-                                    munged,
+                  memberout.println("\"%s\" : %s%s", 
+                                    field.getName() + "." + field.getSignature(),
                                     initValue(field.getSignature()),
                                     iter.hasNext() ? "," : "");
                }
@@ -301,8 +253,8 @@ public class CompilerCPS {
             for (Iterator<Field> iter = myfields.iterator(); iter.hasNext(); ) {
                Field field = iter.next();
                if (field.isStatic()) {
-                  String munged = this.munger.mungeFieldName(classname, field.getName(), field.getType(), true);
-                  String initValue = initValue(field.getSignature());
+                  String signature = field.getSignature();
+                  String initValue = initValue(signature);
                   ConstantValue cv = field.getConstantValue();
                   if (cv != null) {
                      Type type = field.getType();
@@ -330,8 +282,8 @@ public class CompilerCPS {
                      }
                   }
 
-                  memberout.println("%s : %s%s", 
-                                    munged, 
+                  memberout.println("\"%s\" : %s%s", 
+                                    field.getName() + "." + signature, 
                                     initValue,
                                     iter.hasNext() ? "," : "");
                }
