@@ -20,9 +20,8 @@ public class CompileByName {
 
    public static void main(String args[]) throws Throwable {
       InputStream in = CompileByName.class.getClassLoader().getResourceAsStream(args[0]);
-      if (in == null) {
+      if (in == null)
          throw new RuntimeException("Cannot find resource: " + args[0]);
-      }
       ClassParser parser = new ClassParser(in, args[0]);
       JavaClass clazz = parser.parse();
       Compiler compiler = new Compiler(new ClassGen(clazz), logger);

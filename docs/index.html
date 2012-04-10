@@ -2,7 +2,9 @@
   <head>
     <title>Java2JS</title>
     <style type="text/css">
-
+      .code {
+         font-family : courier;
+      }
 
     </style>
   </head>
@@ -20,16 +22,240 @@
       <li><a href="#intro">Introduction</a></li>
       <li><a href="#features">Feature List</a></li>
       <li><a href="#compilation">Compilation</a></li>
-      <li><a href="#names">Name munging</a></li>
+      <li><a href="#classloading">Dynamic class loading</a></li>
+      <li><a href="#native">Native methods</li>
     </ul>
 
-    <hr/>
-    
     <!--     INTRODUCTION    -->
+    <hr/>
+    <h2><a name="intro">Introduction</a></h2>
+    <p>
+      Java2JS translates compiled Java code (.class files) into
+      JavaScript modules (.js files).  The fact that we operate on
+      compiled Java code means that we gain the benefit of knowing
+      that the Java program passed all the compiler checks, and hence
+      is valid code. As such, most of the standard well-formedness
+      checks are not performed on the generated JavaScript code.
+    </p>
+
+    <!-- FEATURE LIST -->
+    <hr/>
+    <h2><a name="features">Feature List</a></h2>
+    <p>
+      The JavaScript form of the compiled Java code has all of the
+      same features of the Java language except for a few. Specifically, we can support:
+      <ul>
+        <li>interfaces</li>
+        <li>int and long arithmetic</li>
+        <li>inheritance</li>
+        <li>arrays</li>
+        <li>native methods</li>
+        <li>limited reflection</li>
+        <li>static initializers</li>
+      </ul>
+      More to the point, there are one or two things that we cannot
+      support, mostly because of inherent restrictions of the
+      JavaScript language. In particular, these include
+      multi-threading and all synchronization primitives.  We can
+      support reflection, but it is not fully
+      implemented. Essentially, most of the elaborate uses of
+      reflection rely on native methods. These methods could be
+      implemented using our native method interface, so the
+      enthusiastic user could implement as much reflection
+      functionality as they wanted.
+    </p>
     
-
     
+    <!-- FEATURE LIST -->
+    <hr/>
+    <h2><a name="compilation">Compilation</a></h2>
+    <p>
+      Here we outline some of the details of the compilation process.
+      Each class file is compiled into a single JavaScript source
+      file.  Each JavaScript source file contains a single class
+      definition, which is a function that, when called, returns
+      JavaScript class. This class can be used to create instances of
+      objects, just like a Java class.  Once a class is defined, is it
+      placed in a global object hierarchy rooted at the "Packages"
+      object.  So for example, the <span class="code">java.lang.String</span> class would be
+      defined in the <span class="code">Packages.java.lang.String</span> object.  This object
+      is a function that returns the class definition, so really
+      <span class="code">Packages.java.lang.String()</span> is the
+      class definition. To create a new instance of String, you would call 
+      <span class="code">Packages.java.lang.String().newInstance()</span>. This
+      creates a new uninitialized instanceof String, just like the NEW
+      Java bytecode operator. Before this String can be used you must
+      call a constructor on it. This brings us to the notion of methods and fields.
+    </p>
+
+    <h3><a name="methods">Methods</a></h3> 
+    <p>
+      Methods are defined as direct properties of an object
+      instance. The method property name is equal to the Java method's
+      name concatenated to its signature. The Java type signature
+      specification is
+      defined <a href="http://docs.oracle.com/javase/specs/jvms/se5.0/html/ClassFile.doc.html#1169">here</a>.
+      So, the method object corresponding to the Java
+      method <span class="code">String.indexOf(String,int)</span>
+      would be
+      <span class="code">Packages.java.lang.String().prototype["indexOf(Ljava/lang/String;I)I"]</span>. Or,
+      for any given String instance str, it would be
+      <span class="code">str["indexOf(Ljava/lang/String;I)I"]</span>.
+      This will be a JavaScript function object that takes 2
+      arguments, and expects the 'this' parameter to be bound to the
+      String instance. Similarly, a static method would be accessed
+      directly off the class definition and not off a particular
+      instance.
+    </p>
+    <p>
+      Constructors are no different in this scheme; they are just
+      methods named "&lt;init&gt;" that always return void.  Once an
+      object instance is created with newInstance(), it is considered
+      uninitialized until one of its constructors is called. An
+      uninitialized object should not have any methods called on it,
+      nor should any fields be accessed. Compiled Java bytecode must
+      obey this restriction; bytecode that violates it does not verify
+      and will not run. The JavaScript implementation does not check
+      for this and will not throw an exception. Calling newInstance()
+      will cause the class to be initialized
+      (see <a href="#initialization">initialization</a>).
+    </p>
+
+    <h3><a name="fields">Fields</a></h3>
+    <p>
+      Fields are also accessed directly off the object instance.
+      However, the field property name is slightly different than the
+      method property name.  To make the field property name for a
+      particular Java field, you concatenate its name with a period
+      (".") and then its type signature. So, for a String field named
+      "foo", the property name would be
+      <span class="code">foo.Ljava/lang/String;</span>.  Just like in
+      Java, fields are implemented to their default values. For object
+      types this is null, for numeric types it is numeric 0, for
+      booleans it is false.
+    </p>
+
+    <h3><a name="primitives">Primitive Types</a></h3>
+    <p>
+      We support all Java primitive types, with one minor exception;
+      floats are implemented as doubles. This is because all
+      JavaScript numeric values are implicitly doubles, so it was just
+      easier that way. That aside, we faithfully implement int and
+      long arithmetic. Primitive ints are instances of the Integer
+      class defined in <span class="code">int.js</span> (this is a
+      normal-style JavaScript class named Integer, not the
+      java.lang.Integer equivalent). Similarly, primitive long
+      integers are defined by the Long class defined
+      in <span class="code">long.js</span>. These objects cannot be
+      manipulated with the built-in JavaScript arithmetic
+      operators. Instead, there are methods defined to perform all the
+      usual operations. For instance, adding primitive ints A and B is
+      done by calling <span class="code">A.add(B)</span>, which
+      returns a new Integer object. In general, Integers and Longs are
+      considered immutable (even though their inner fields are quite
+      mutable).
+      
+      Since floats and doubles are implemented by native JavaScript
+      numbers, they can be manipulated using the built-in JavaScript
+      operators.
+
+      In JavaScript we use null to represent Java's null. JavaScript's
+      undefined value does not correspond to any Java value.
+    </p>
+
+    <h3><a name="types">Type Descriptors</a></h3>
+    <p>
+      Type descriptors are used in a few places in our implementation,
+      primarily in telling arrays what their types are. Type
+      descriptors are defined
+      in <span class="code">arrayobject.js</span> and come in 3 types:
+      primitive, object, and array.  A primitive type represents one
+      of the 8 Java primitive types, and also VOID.  An object type is
+      actually an object class definition. An array type names an
+      element type. Whenever a new array is created, it must be given
+      a type descriptor object to tell it what its type is. Just like
+      in Java, arrays are subclasses of Object.
+    </p>
+
+    <h3><a name="arrays">Arrays</a></h3>
+    <p>
+      Arrays are created by creating instances of the ArrayObject class.
+      They are created with a length and a type descriptor.
+      For example, to create an array of Strings of length 10, one would call
+      <span class="code">new ArrayObject(10, new
+      ArrayType(Packages.java.lang.String()))</span>.
+      Since arrays are Objects, you can call any of the Object methods on them.
+    </p>
+
+    <h3><a name="initialization">Initialization</a></h3>
+    <p>
+      Class initialization happens when a class is first "used". This
+      includes the first instantiation (call to newInstance()), the
+      first static method call, or the first static field access.
+      Initialization causes the supertypes of a class to be
+      initialized recursively. Once they are initialized, the original
+      class' static initializer block is executed (if any). This is
+      the method named <span class="code">&lt;clinit&gt;()V</span>.
+      Class initialization happens only once for any given class/interface.
+    </p>
 
 
+
+    <!--     CLASSLOADING    -->
+    <hr/>
+    <h2><a name="classloading">Dynamic Class Loading</a></h2>
+    <p>
+      Just like in Java, we support dynamic classloading. This is done
+      through dynamic synchronous script injection at the point when a
+      new class is first
+      referenced. The <span class="code">Util.resolveClass(string)</span>
+      method will use the system classloader to attempt to dynamically
+      load the given class, if it is not already loaded into the
+      object hierarchy. This requires that the system classloader is
+      defined and set. To define the system classloader,
+      call <span class="code">Util.setClassLoader(classloader)</span>.
+      Classloader objects are defined
+      in <span class="code">classloader.js</span>. The basic mechanism
+      is that you must define a URL that can take accept a query
+      string such as "?class=java.lang.String". It should then return
+      the text that results from running the Java2JS compiler on the
+      given class. The <span class="code">classloader.php</span>
+      script is a simple example of this, which simply calls the
+      provided Makefile to generate the named class, and then does a
+      passthru of the JavaScript.
+    </p>
+
+
+    <!--     NATIVE METHODS    -->
+    <hr/>
+    <h2><a name="native">Native Methods</a></h2>
+    <p>
+      Our system supports native methods to be written in pure
+      JavaScript code.  A native method implementation is registered
+      through the <span class="code">Util.register_native(classname,
+      methodname, func)</span> method. This is best described by example. We will define the method
+      <span class="code">java.lang.System.arraycopy(Object src, int
+      srcPos, Object dest, int destPos, int length)</span>.
+      We can do this as follows:
+
+      <pre>
+        Util.register_native("java.lang.System", "arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V", 
+                             function(src, srcPos, dest, destPos, length) {
+                                length = length.toJS();
+                                srcPos = srcPos.toJS();
+                                destPos = destPos.toJS();
+                                for (var i = 0; i &lt; length; i++) {
+                                   dest.set(i + destPos, src.get(i + srcPos));
+                                }
+                             });
+      </pre>
+
+      Inside this function, the ints would be implemented as the
+      JavaScript Integer objects described above. The "toJS" function
+      converts the Integer value to an equivalent native JavaScript
+      number. One final detail is that the 'this' reference of the
+      function you provide will be bound to the target object, just
+      like in Java (for non-static methods).
+    </p>
   </body>
 </html>

@@ -1,0 +1,33 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Testing</title>
+    <script type="text/javascript" src="../../../src/util.js"></script>
+    <script type="text/javascript" src="../../../src/native.js"></script>
+    <script type="text/javascript" src="../../../src/reflect_native.js"></script>
+    <script type="text/javascript" src="../../../src/int.js"></script>
+    <script type="text/javascript" src="../../../src/long.js"></script>
+    <script type="text/javascript" src="../../../src/object.js"></script>
+    <script type="text/javascript" src="../../../src/arrayobject.js"></script>
+    <script type="text/javascript" src="../../../src/classloader.js"></script>
+    <script type="text/javascript">
+       var stderr = null;
+       function logger(str) {
+          stderr.value += str + "\n";
+       }
+       window.onload = function() {
+         stderr = document.getElementById("stderr");
+         var classloader = new DefaultURLClassLoader("http://goto.ucsd.edu/~mstepp/java2js_git/classloader.php");
+         classloader.setDocument(document);
+         classloader.setLogger(logger);
+         Util.setClassLoader(classloader);
+         var args = new ArrayObject(0, new ArrayType(Util.resolveClass("java.lang.String")));
+         Util.resolveClass("java2js.test.Factorial")["main([Ljava/lang/String;)V"](args);
+       };
+    </script>
+  </head>
+  <body>
+    Testing...
+    <br/><textarea id="stdout" rows="10" cols="50"></textarea>
+    <br/><textarea id="stderr" rows="10" cols="50"></textarea>
+  </body>
+</html>

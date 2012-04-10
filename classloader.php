@@ -4,7 +4,7 @@
       $dotname = $_GET["class"];
       $slashname = str_replace(".", "/", $dotname);
       $resourcename = $slashname . ".class";
-      $jsfilename = "js/$slashname.js";
+      $jsfilename = "examples/js/$slashname.js";
 
       if ($DEBUG) {
          echo "Dotname is $dotname<br/>";
