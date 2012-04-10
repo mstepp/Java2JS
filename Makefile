@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-JAVA_SRC := $(wildcard src/java2js/*.java src/java2js/test/*.java src/heart/*.java src/bf/*.java src/tetris/*.java src/lambda/*.java)
+JAVA_SRC := $(wildcard src/java2js/*.java src/java2js/test/*.java src/heart/*.java src/bf/*.java src/lambda/*.java src/tetris3d/*.java)
 JAVA_CLASS := $(patsubst src/%.java,bin/%.class,$(JAVA_SRC))
 JS_LIBRARY := int.js arrayobject.js util.js long.js
 SPECIAL_CLASSES := 'java/lang/String$$CaseInsensitiveComparator'
@@ -29,19 +29,9 @@ compilefile:
 		$(MAKE) "js/$$classname.js" ; \
 	done ;
 
-compileall:
-	for i in packages/*.package ; do \
-		$(MAKE) -s 'LISTFILE=$$i' compilefile ; \
-	done ;
-
 # needs CLASS
 compile:	java
 	java -cp bcel-5.2.jar:bin/ java2js.CompileByName '$(CLASS)' ;
-
-compilebasic:	java
-	$(MAKE) -s LISTFILE=packages/basic compilefile ;
-	chmod -R a+r js/ ;
-	find js -type d -exec chmod a+rx {} \;
 
 # needs LISTFILE and OUTPUT
 testheader:
@@ -55,6 +45,7 @@ testheader:
 	echo '    <script type="text/javascript" src="src/long.js"></script>' >> "$(OUTPUT)" ;
 	echo '    <script type="text/javascript" src="src/object.js"></script>' >> "$(OUTPUT)" ;
 	echo '    <script type="text/javascript" src="src/arrayobject.js"></script>' >> "$(OUTPUT)" ;
+	echo '    <script type="text/javascript" src="src/classloader.js"></script>' >> "$(OUTPUT)" ;
 	for classname in `cat $(LISTFILE)` ; do \
 		echo "    <script type=\"text/javascript\" src=\"js/$$classname.js\"></script>" ; \
 	done >> "$(OUTPUT)" ;
@@ -70,13 +61,20 @@ testfooter:
 	echo '</html>' >> "$(OUTPUT)" ;
 	chmod a+r "$(OUTPUT)" ;
 
-compile_arithmetic:
-	$(MAKE) -s LISTFILE=packages/arithmetic compilefile ;
 
 test_arithmetic:
-	$(MAKE) -s OUTPUT=test.html LISTFILE=packages/arithmetic testheader ;
+	$(MAKE) -s OUTPUT=test.html LISTFILE=/dev/null testheader ;
 	echo '    <script type="text/javascript">' >> test.html ;
+	echo '       var stderr = null;' >> test.html ;
+	echo '       function logger(str) {' >> test.html ;
+	echo '          stderr.value += str + "\n";' >> test.html ;
+	echo '       }' >> test.html ;
 	echo '       window.onload = function() {' >> test.html ;
+	echo '         stderr = document.getElementById("stderr");' >> test.html ;
+	echo '         var classloader = new DefaultURLClassLoader("http://goto.ucsd.edu/~mstepp/java2js_git/classloader.php");' >> test.html ;
+	echo '         classloader.setDocument(document);' >> test.html ;
+	echo '         classloader.setLogger(logger);' >> test.html ;
+	echo '         Util.setClassLoader(classloader);' >> test.html ;
 	echo '         var args = new ArrayObject(0, new ArrayType(Util.resolveClass("java.lang.String")));' >> test.html ;
 	echo '         Util.resolveClass("java2js.test.TestJS")["main([Ljava/lang/String;)V"](args);' >> test.html ;
 	echo '       };' >> test.html ;
@@ -84,15 +82,19 @@ test_arithmetic:
 	$(MAKE) -s OUTPUT=test.html testfooter ;
 
 
-
-compile_factorial:
-	$(MAKE) -s LISTFILE=packages/factorial compilefile ;
-	find js/ -type d -exec chmod a+rx {} \;
-
 test_factorial:
-	$(MAKE) -s OUTPUT=test.html LISTFILE=packages/factorial testheader ;
+	$(MAKE) -s OUTPUT=test.html LISTFILE=/dev/null testheader ;
 	echo '    <script type="text/javascript">' >> test.html ;
+	echo '       var stderr = null;' >> test.html ;
+	echo '       function logger(str) {' >> test.html ;
+	echo '          stderr.value += str + "\n";' >> test.html ;
+	echo '       }' >> test.html ;
 	echo '       window.onload = function() {' >> test.html ;
+	echo '         stderr = document.getElementById("stderr");' >> test.html ;
+	echo '         var classloader = new DefaultURLClassLoader("http://goto.ucsd.edu/~mstepp/java2js_git/classloader.php");' >> test.html ;
+	echo '         classloader.setDocument(document);' >> test.html ;
+	echo '         classloader.setLogger(logger);' >> test.html ;
+	echo '         Util.setClassLoader(classloader);' >> test.html ;
 	echo '         var args = new ArrayObject(0, new ArrayType(Util.resolveClass("java.lang.String")));' >> test.html ;
 	echo '         Util.resolveClass("java2js.test.Factorial")["main([Ljava/lang/String;)V"](args);' >> test.html ;
 	echo '       };' >> test.html ;
@@ -100,34 +102,31 @@ test_factorial:
 	$(MAKE) -s OUTPUT=test.html testfooter ;
 
 
-compile_heart:
-	$(MAKE) -s LISTFILE=packages/heart compilefile ;
-	chmod -R a+r js/ ;
-	find js/ -type d -exec chmod a+rx {} \;
-
 test_heart:
-	$(MAKE) -s OUTPUT=test.html LISTFILE=packages/heart testheader ;
+	$(MAKE) -s OUTPUT=test.html LISTFILE=/dev/null testheader ;
 	echo '    <script type="text/javascript" src="src/heartnative.js"></script>' >> test.html ;
 	echo '    <script type="text/javascript">' >> test.html ;
+	echo '       var stderr = null;' >> test.html ;
+	echo '       function logger(str) {' >> test.html ;
+	echo '          stderr.value += str + "\n";' >> test.html ;
+	echo '       }' >> test.html ;
 	echo '       window.onload = function() {' >> test.html ;
-	echo '         try {' >> test.html ;
-	echo '           var animator = Util.resolveClass("heart.Animator").newInstance();' >> test.html ;
-	echo '           animator["<init>(Ljava/lang/String;)V"](Util.js2java_string("canvas"));' >> test.html ;
-	echo '           var frac = Util.resolveClass("heart.CFractal").newInstance();' >> test.html ;
-	echo '           frac["<init>(Lheart/Animator;)V"](animator);' >> test.html ;
-	echo '           frac["run(I)V"](new Integer(15));' >> test.html ;
-	echo '         } catch(exception) {' >> test.html ;
-	echo '           if (!((typeof exception) == "object" && ("thisclass" in exception))) {' >> test.html ;
-	echo '             alert("JavaScript exception: " + exception);' >> test.html ;
-	echo '           } else {' >> test.html ;
-	echo '             alert(exception + " " + Util.java2js_string(exception["toString()Ljava/lang/String;"]()));' >> test.html ;
-	echo '           }' >> test.html ;
-	echo '         }' >> test.html ;
+	echo '         stderr = document.getElementById("stderr");' >> test.html ;
+	echo '         var classloader = new DefaultURLClassLoader("http://goto.ucsd.edu/~mstepp/java2js_git/classloader.php");' >> test.html ;
+	echo '         classloader.setDocument(document);' >> test.html ;
+	echo '         classloader.setLogger(logger);' >> test.html ;
+	echo '         Util.setClassLoader(classloader);' >> test.html ;
+	echo '         var animator = Util.resolveClass("heart.Animator").newInstance();' >> test.html ;
+	echo '         animator["<init>(Ljava/lang/String;)V"](Util.js2java_string("canvas"));' >> test.html ;
+	echo '         var frac = Util.resolveClass("heart.CFractal").newInstance();' >> test.html ;
+	echo '         frac["<init>(Lheart/Animator;)V"](animator);' >> test.html ;
+	echo '         frac["run(I)V"](new Integer(15));' >> test.html ;
 	echo '       };' >> test.html ;
 	echo '    </script>' >> test.html ;
 	echo '  </head>' >> test.html ;
 	echo '  <body>' >> test.html ;
 	echo '    <canvas id="canvas" width="500" height="500" style="border:1px solid black;"></canvas>' >> test.html ;
+	echo '    <textarea id="stderr" rows="20" cols="50"></textarea>' >> test.html ;
 	echo '  </body>' >> test.html ;
 	echo '</html>' >> test.html ;
 
@@ -135,18 +134,20 @@ testbf1:	java
 	java -cp bin:bcel-5.2.jar bf.Runner '++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.' '' ;
 
 
-
-
-compile_bf:
-	$(MAKE) -s LISTFILE=packages/bf compilefile ;
-	chmod -R a+r js/ ;
-	find js/ -type d -exec chmod a+rx {} \;
-
 test_bf:
-	$(MAKE) -s OUTPUT=test.html LISTFILE=packages/bf testheader ;
+	$(MAKE) -s OUTPUT=test.html LISTFILE=/dev/null testheader ;
 	echo '    <script type="text/javascript" src="src/bfnative.js"></script>' >> test.html ;
 	echo '    <script type="text/javascript">' >> test.html ;
+	echo '       var stderr = null;' >> test.html ;
+	echo '       function logger(str) {' >> test.html ;
+	echo '          stderr.value += str + "\n";' >> test.html ;
+	echo '       }' >> test.html ;
 	echo '       window.onload = function() {' >> test.html ;
+	echo '         stderr = document.getElementById("stderr");' >> test.html ;
+	echo '         var classloader = new DefaultURLClassLoader("http://goto.ucsd.edu/~mstepp/java2js_git/classloader.php");' >> test.html ;
+	echo '         classloader.setDocument(document);' >> test.html ;
+	echo '         classloader.setLogger(logger);' >> test.html ;
+	echo '         Util.setClassLoader(classloader);' >> test.html ;
 	echo '         document.getElementById("button").onclick = function() {' >> test.html ;
 	echo '           var program = document.getElementById("program").value;' >> test.html ;
 	echo '           program = Util.resolveClass("bf.Parser")["parse(Ljava/lang/String;)Lbf/Command;"](Util.js2java_string(program));' >> test.html ;
@@ -167,17 +168,14 @@ test_bf:
 	echo '    <div><textarea id="input" rows="5" cols="50"></textarea></div>' >> test.html ;
 	echo '    <div><textarea id="output" rows="5" cols="50"></textarea></div>' >> test.html ;
 	echo '    <div><input type="button" value="Go" id="button"/></div>' >> test.html ;
+	echo '    <div><textarea id="stderr" rows="20" cols="50"></textarea></div>' >> test.html ;
 	echo '  </body>' >> test.html ;
 	echo '</html>' >> test.html ;
 
 
-compile_lambda:
-	$(MAKE) -s LISTFILE=packages/lambda compilefile ;
-	chmod -R a+r js/ ;
-	find js/ -type d -exec chmod a+rx {} \;
-
+# TODO: add classloader
 test_lambda:
-	$(MAKE) -s OUTPUT=test.html LISTFILE=packages/lambda testheader ;
+	$(MAKE) -s OUTPUT=test.html LISTFILE=/dev/null testheader ;
 	echo '    <script type="text/javascript" src="src/lambdanative.js"></script>' >> test.html ;
 	echo '    <script type="text/javascript">' >> test.html ;
 	echo '       window.onload = function() {' >> test.html ;
@@ -197,6 +195,10 @@ test_lambda:
 	echo '    <div><input type="button" value="Go" id="button"/></div>' >> test.html ;
 	echo '  </body>' >> test.html ;
 	echo '</html>' >> test.html ;
+
+test_tetris3d:
+	$(MAKE) -s OUTPUT=test.html LISTFILE=/dev/null testheader ;
+	cat src/tetris3d/tetris.html >> test.html ;
 
 clean:
 	rm -rf bin/* src/*~ src/java2js/*~ src/java2js/test/*~ *~ js/* test.html ;

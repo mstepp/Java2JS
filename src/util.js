@@ -504,9 +504,6 @@ var Util =
       function resolveClass(classname) {
          function barf() {
             throw "Cannot find class: " + classname;
-            //		var exception = Util.resolveClass("java.lang.NoClassDefFoundError");
-            //		exception["<init>()V"]();
-            //		throw exception;
          }
 
          function lookupClass(name) {
@@ -527,21 +524,11 @@ var Util =
          }
 
          var info = lookupClass(classname);
-         if (info == null && classloader != null) {
-            // try to load from classloader
-            function callback() {
-               var info = lookupClass(classname);
-               if (info == null) {
-                  barf();
-               }
-               // TODO!!!!! make this synchronous!!!
-
+         if (info == null && classloader) {
+            // try to dynamically load
+            if (classloader.loadClass(classname)) {
+               info = lookupClass(classname);
             }
-
-
-
-            classloader.loadClass(classname);
-            info = lookupClass(classname);
          }
          if (info == null) {
             barf();

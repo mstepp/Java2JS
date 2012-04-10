@@ -531,7 +531,7 @@ public class InstructionCompiler {
             }
          }
 
-         if (returnType.equals(Type.DOUBLE)) {
+         if (returnType.equals(Type.DOUBLE) || returnType.equals(Type.LONG)) {
             push2("result");
          } else if (!returnType.equals(Type.VOID)) {
             push("result");
@@ -561,7 +561,7 @@ public class InstructionCompiler {
             println("var result = obj[\"%s\"](%s);", munged, argstr);
          }
 
-         if (returnType.equals(Type.DOUBLE)) {
+         if (returnType.equals(Type.DOUBLE) || returnType.equals(Type.LONG)) {
             push2("result");
          } else if (!returnType.equals(Type.VOID)) {
             push("result");
@@ -590,7 +590,7 @@ public class InstructionCompiler {
             println("var result = %s[\"%s\"](%s);", Compiler.resolve(classname), munged, argstr);
          }
 
-         if (returnType.equals(Type.DOUBLE)) {
+         if (returnType.equals(Type.DOUBLE) || returnType.equals(Type.LONG)) {
             push2("result");
          } else if (!returnType.equals(Type.VOID)) {
             push("result");
@@ -641,7 +641,7 @@ public class InstructionCompiler {
          for (int i = ndims-1; i >= 0; i--) {
             println("dims[%s] = stack.pop();", i);
          }
-         push("Util.multianewarray(dims, %s);", makeTypeObject(type));
+         push("Util.multianewarray(dims, %s)", makeTypeObject(type));
       }
       else if (inst instanceof NEW) {
          NEW newinst = (NEW)inst;
