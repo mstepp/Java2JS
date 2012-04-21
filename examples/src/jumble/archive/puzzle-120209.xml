@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120209"/>
+	<clues>
+		<c1 j="LEYCC" a="CYCLE" circle="1,4,5"/>
+		<c2 j="NOWDU" a="WOUND" circle="1,2,4,5"/>
+		<c3 j="ABEENT" a="BEATEN" circle="3,4,5"/>
+		<c4 j="TARENB" a="BANTER" circle="2,3,4"/>
+	</clues>
+	<caption>
+		<v1 t="The concert in Death Valley had"/>
+	</caption>
+	<solution>
+		<s1 layout="LOW{ }ATTENDANCE" a="LOWATTENDANCE"/>
+	</solution>
+</Jumble>

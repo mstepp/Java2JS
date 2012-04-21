@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120102"/>
+	<clues>
+		<c1 j="OMYOD" a="MOODY" circle="2,3,4"/>
+		<c2 j="STIYP" a="TIPSY" circle="1,4"/>
+		<c3 j="FBLAEF" a="BAFFLE" circle="3,4"/>
+		<c4 j="CYAREM" a="CREAMY" circle="2,3,5"/>
+	</clues>
+	<caption>
+		<v1 t="After getting into an argument with the news anchor, the weatherman"/>
+	</caption>
+	<solution>
+		<s1 layout="STORMED{ }OFF" a="STORMEDOFF"/>
+	</solution>
+</Jumble>
+

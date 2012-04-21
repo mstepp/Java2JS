@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120122"/>
+	<clues>
+		<c1 j="DRUIL" a="LURID" circle="3,4"/>
+		<c2 j="MUJYP" a="JUMPY" circle="4,5"/>
+		<c3 j="LUPPER" a="PURPLE" circle="1,4"/>
+		<c4 j="VICADE" a="ADVICE" circle="1,6"/>
+	</clues>
+	<caption>
+		<v1 t="What the contractor had to do when the plumber finished"/>
+	</caption>
+	<solution>
+		<s1 layout="PAY{ THE '}PIPER{'}" a="PAYPIPER"/>
+	</solution>
+</Jumble>

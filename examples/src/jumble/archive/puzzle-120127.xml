@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120127"/>
+	<clues>
+		<c1 j="AVREB" a="BRAVE" circle="3,5"/>
+		<c2 j="WIRTL" a="TWIRL" circle="1,4"/>
+		<c3 j="LOTTUE" a="OUTLET" circle="1,4"/>
+		<c4 j="YBOSIP" a="BIOPSY" circle="2,5,6"/>
+	</clues>
+	<caption>
+		<v1 t="The prince signed the book deal so he could get"/>
+	</caption>
+	<solution>
+		<s1 layout="ROYALTIES" a="ROYALTIES"/>
+	</solution>
+</Jumble>
+

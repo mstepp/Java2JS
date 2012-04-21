@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120104"/>
+	<clues>
+		<c1 j="MALAL" a="LLAMA" circle="2,3,5"/>
+		<c2 j="PIRMC" a="CRIMP" circle="2,5"/>
+		<c3 j="TATYRN" a="TYRANT" circle="4,5,6"/>
+		<c4 j="YSPLIM" a="SIMPLY" circle="2,3,6"/>
+	</clues>
+	<caption>
+		<v1 t="The dog was content to sleep through all the festivities because he wasn't a"/>
+	</caption>
+	<solution>
+		<s1 layout="PARTY{ }ANIMAL" a="PARTYANIMAL"/>
+	</solution>
+</Jumble>

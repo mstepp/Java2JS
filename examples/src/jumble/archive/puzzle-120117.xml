@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120117"/>
+	<clues>
+		<c1 j="SLIOP" a="SPOIL" circle="5"/>
+		<c2 j="KEWAA" a="AWAKE" circle="2,5"/>
+		<c3 j="NATDEN" a="TANNED" circle="4,5"/>
+		<c4 j="YCUDOL" a="CLOUDY" circle="2,3,5"/>
+	</clues>
+	<caption>
+		<v1 t="After tasting his perfectly cooked, medium-rare steak, the customer said this"/>
+	</caption>
+	<solution>
+		<s1 layout="WELL{ }DONE" a="WELLDONE"/>
+	</solution>
+</Jumble>

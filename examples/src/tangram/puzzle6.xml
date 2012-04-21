@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<puzzle>
+   <url src="puzzle6.gif"/>
+   <size width="209" height="236"/>
+   <points>
+      <point x="52" y="0"/>
+      <point x="0" y="52"/>
+      <point x="52" y="52"/>
+      <point x="104" y="52"/>
+      <point x="0" y="104"/>
+      <point x="52" y="104"/>
+      <point x="104" y="104"/>
+      <point x="156" y="104"/>
+      <point x="208" y="104"/>
+      <point x="52" y="156"/>
+      <point x="104" y="156"/>
+      <point x="156" y="156"/>
+      <point x="68" y="172"/>
+      <point x="129" y="183"/>
+      <point x="32" y="208"/>
+      <point x="104" y="208"/>
+      <point x="77" y="235"/>
+      <point x="129" y="235"/>
+      <point x="208" y="52"/>
+      <point x="260" y="52"/>
+   </points>
+</puzzle>

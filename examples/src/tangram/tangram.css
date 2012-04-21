@@ -1,0 +1,70 @@
+#titlediv {
+   position : absolute;
+   height : 50px;
+   font-family : arial;
+   font-size : 20pt;
+   text-align : center;
+   color : black;
+   width : 200px;
+   top : 0px;
+   left : 150px;
+}
+
+#maindiv {
+   top : 20px;
+   width : 500px;
+   position : absolute;
+   height : 600px;
+   text-align : center;
+}
+
+#boarddiv {
+   position : absolute;
+   width : 400px;
+   height : 500px;
+   top : 50px;
+   left : 50px;
+   background-color : #999999;
+   border : 1px solid black;
+   z-index : 1;
+   overflow : hidden;
+}
+
+.piece {
+   z-index : 3;
+   visibility : visible;
+   position : absolute;
+}
+
+.win {
+   visibility : hidden;
+   z-index : 6;
+   position : absolute;
+   left : 50px;
+   top : 75px;
+}
+
+#puzzlediv {
+   left : 0px;
+   top : 0px;
+   position : absolute;
+   z-index : 2;
+}
+
+#chooserdiv {
+   position : absolute;
+   top : 580px;
+   width : 300px;
+   text-align : center;
+   left : 100px;
+   font-family : courier;
+}
+
+.backlink {
+   font-family : arial;
+   font-size : 10pt;
+}
+
+#puzzleselector {
+   width : 100px;
+}

@@ -1,0 +1,6 @@
+Downloading files...
+2012-02-10 02:00:05 URL:http://picayune.uclick.com/comics/tmjmf/puzzles//tmjmf120210-data.xml [407/407] -> "tmjmf120210-data.xml" [1]
+2012-02-10 02:00:06 URL:http://picayune.uclick.com/comics/tmjmf/puzzles//tmjmf120210.gif [20140/20140] -> "tmjmf120210.gif" [1]
+Building today's files
+Saving in archive
+Running make_daily.sh

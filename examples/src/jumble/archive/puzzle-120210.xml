@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120210"/>
+	<clues>
+		<c1 j="RAWEF" a="WAFER" circle="2,4"/>
+		<c2 j="ZEOON" a="OZONE" circle="3,4"/>
+		<c3 j="LATERL" a="TALLER" circle="1,3,4"/>
+		<c4 j="CADFAE" a="FACADE" circle="1,6"/>
+	</clues>
+	<caption>
+		<v1 t="When the marathon runner missed the right turn, he ended up"/>
+	</caption>
+	<solution>
+		<s1 layout="LEFT{ }ALONE" a="LEFTALONE"/>
+	</solution>
+</Jumble>
+

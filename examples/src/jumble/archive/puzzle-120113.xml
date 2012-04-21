@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120113"/>
+	<clues>
+		<c1 j="TUETR" a="UTTER" circle="2,3,4"/>
+		<c2 j="NAYNO" a="ANNOY" circle="1,3"/>
+		<c3 j="LMOWEL" a="MELLOW" circle="1,5,6"/>
+		<c4 j="YPIRUF" a="PURIFY" circle="1,3,6"/>
+	</clues>
+	<caption>
+		<v1 t="When they cast a co-star for Richard Gere, they found a"/>
+	</caption>
+	<solution>
+		<s1 layout="PRETTY{ }WOMAN" a="PRETTYWOMAN"/>
+	</solution>
+</Jumble>

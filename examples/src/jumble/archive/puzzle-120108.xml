@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120108"/>
+	<clues>
+		<c1 j="CONTH" a="NOTCH" circle="1,2,5"/>
+		<c2 j="NAVER" a="RAVEN" circle="1,2,5"/>
+		<c3 j="CREEFI" a="FIERCE" circle="2,3,5"/>
+		<c4 j="DEGUMS" a="SMUDGE" circle="1,2,5"/>
+	</clues>
+	<caption>
+		<v1 t="What he faced when he married the mother of two"/>
+	</caption>
+	<solution>
+		<s1 layout="{'}MINOR{' }CHANGES " a="MINORCHANGES"/>
+	</solution>
+</Jumble>

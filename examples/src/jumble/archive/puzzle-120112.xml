@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120112"/>
+	<clues>
+		<c1 j="VEEOK" a="EVOKE" circle="3"/>
+		<c2 j="AOTUQ" a="QUOTA" circle="1,2"/>
+		<c3 j="TEIHNZ" a="ZENITH" circle="1,4"/>
+		<c4 j="PEORCP" a="COPPER" circle="3,4"/>
+	</clues>
+	<caption>
+		<v1 t="Curious about his dad's childhood, junior gave his father"/>
+	</caption>
+	<solution>
+		<s1 layout="{A }POP{ }QUIZ" a="POPQUIZ"/>
+	</solution>
+</Jumble>

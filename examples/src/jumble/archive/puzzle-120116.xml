@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120116"/>
+	<clues>
+		<c1 j="COKBL" a="BLOCK" circle="1,4,5"/>
+		<c2 j="NCRAH" a="RANCH" circle="1,2,5"/>
+		<c3 j="RANLEY" a="NEARLY" circle="1,2"/>
+		<c4 j="DIOWSM" a="WISDOM" circle="6"/>
+	</clues>
+	<caption>
+		<v1 t="Presiding over 100 trials was this for the judge"/>
+	</caption>
+	<solution>
+		<s1 layout="{A }BENCHMARK" a="BENCHMARK"/>
+	</solution>
+</Jumble>

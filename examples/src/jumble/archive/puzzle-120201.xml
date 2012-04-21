@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120201"/>
+	<clues>
+		<c1 j="PTEMY" a="EMPTY" circle="1,2,4"/>
+		<c2 j="CLUGH" a="GULCH" circle="5"/>
+		<c3 j="CIKOEO" a="COOKIE" circle="1,5"/>
+		<c4 j="SYPRAT" a="PASTRY" circle="2,3,5"/>
+	</clues>
+	<caption>
+		<v1 t="When the actor broke his leg on-stage, they had to"/>
+	</caption>
+	<solution>
+		<s1 layout="RECAST{ }HIM" a="RECASTHIM"/>
+	</solution>
+</Jumble>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120131"/>
+	<clues>
+		<c1 j="NIRGB" a="BRING" circle="5"/>
+		<c2 j="HAOCC" a="COACH" circle="2,3"/>
+		<c3 j="FOERFT" a="EFFORT" circle="1,4"/>
+		<c4 j="DCLUED" a="CUDDLE" circle="3,4,5"/>
+	</clues>
+	<caption>
+		<v1 t="She thought getting the royal flush to win the poker tournament was this"/>
+	</caption>
+	<solution>
+		<s1 layout="{A }GOOD{ }DEAL" a="GOODDEAL"/>
+	</solution>
+</Jumble>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120207"/>
+	<clues>
+		<c1 j="AZLEB" a="BLAZE" circle="3,5"/>
+		<c2 j="ACHHT" a="HATCH" circle="2,3"/>
+		<c3 j="BETJOC" a="OBJECT" circle="2"/>
+		<c4 j="SLOIAR" a="SAILOR" circle="1,6"/>
+	</clues>
+	<caption>
+		<v1 t="Playing the sun in the play about the solar system allowed him to"/>
+	</caption>
+	<solution>
+		<s1 layout="BE{ }A{ }STAR" a="BEASTAR"/>
+	</solution>
+</Jumble>

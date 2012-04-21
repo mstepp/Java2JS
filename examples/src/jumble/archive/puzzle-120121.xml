@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120121"/>
+	<clues>
+		<c1 j="GNAET" a="AGENT" circle="2,3"/>
+		<c2 j="RTDIH" a="THIRD" circle="1,5"/>
+		<c3 j="NISGRP" a="SPRING" circle="4,6"/>
+		<c4 j="MIOENC" a="INCOME" circle="3,6"/>
+	</clues>
+	<caption>
+		<v1 t="The customer got this after seeing the new omelette on the menu"/>
+	</caption>
+	<solution>
+		<s1 layout="{'}EGGCITED{'} " a="EGGCITED"/>
+	</solution>
+</Jumble>

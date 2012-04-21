@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120101"/>
+	<clues>
+		<c1 j="GIMCA" a="MAGIC" circle="4,5"/>
+		<c2 j="NAPAD" a="PANDA" circle="1,2"/>
+		<c3 j="SESCUN" a="CENSUS" circle="4,6"/>
+		<c4 j="YINJET" a="JITNEY" circle="3,5"/>
+	</clues>
+	<caption>
+		<v1 t="The kind of books prisoners prefer"/>
+	</caption>
+	<solution>
+		<s1 layout="ESCAPIST" a="ESCAPIST"/>
+	</solution>
+</Jumble>
+

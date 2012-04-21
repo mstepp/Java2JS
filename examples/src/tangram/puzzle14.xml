@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<puzzle>
+   <url src="puzzle14.gif"/>
+   <size width="229" height="197"/>
+   <points>
+      <point x="0" y="0"/>
+      <point x="72" y="0"/>
+      <point x="124" y="20"/>
+      <point x="176" y="20"/>
+      <point x="228" y="20"/>
+      <point x="36" y="36"/>
+      <point x="196" y="52"/>
+      <point x="72" y="72"/>
+      <point x="124" y="72"/>
+      <point x="176" y="72"/>
+      <point x="160" y="88"/>
+      <point x="36" y="108"/>
+      <point x="108" y="108"/>
+      <point x="124" y="124"/>
+      <point x="196" y="124"/>
+      <point x="72" y="144"/>
+      <point x="144" y="144"/>
+      <point x="160" y="160"/>
+      <point x="196" y="196"/>
+   </points>
+</puzzle>

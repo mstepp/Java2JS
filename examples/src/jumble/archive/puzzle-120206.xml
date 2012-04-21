@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120206"/>
+	<clues>
+		<c1 j="YDUBD" a="BUDDY" circle="3,5"/>
+		<c2 j="MARCP" a="CRAMP" circle="3"/>
+		<c3 j="TUNBOY" a="BOUNTY" circle="1,4"/>
+		<c4 j="SMYORT" a="STORMY" circle="1,2"/>
+	</clues>
+	<caption>
+		<v1 t="When she asked if she would be able to get a seat on the next flight, she was told to"/>
+	</caption>
+	<solution>
+		<s1 layout="STAND{ }BY" a="STANDBY"/>
+	</solution>
+</Jumble>
+

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+   <channel>
+      <title>Daily Jumble</title>
+      <link>http://cseweb.ucsd.edu/~mstepp/jumble/daily.html</link>
+      <description>The Daily Jumble word game</description>
+      <language>en</language>
+      <!-- items come below here -->

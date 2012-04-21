@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120114"/>
+	<clues>
+		<c1 j="CMHUN" a="MUNCH" circle="1,3"/>
+		<c2 j="DOITI" a="IDIOT" circle="3,5"/>
+		<c3 j="DDEEGH" a="HEDGED" circle="3,6"/>
+		<c4 j="WINNUD" a="UNWIND" circle="2,4,6"/>
+	</clues>
+	<caption>
+		<v1 t="Dr. Frankenstein put a faulty brain in his monster, but the monster"/>
+	</caption>
+	<solution>
+		<s1 layout="DIDN{`}T{ }MIND" a="DIDNTMIND"/>
+	</solution>
+</Jumble>
+

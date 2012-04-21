@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120124"/>
+	<clues>
+		<c1 j="FHAWR" a="WHARF" circle="2,5"/>
+		<c2 j="KRICT" a="TRICK" circle="3,4"/>
+		<c3 j="SLIDEH" a="SHIELD" circle="1,2,3"/>
+		<c4 j="PUCRES" a="SPRUCE" circle="1,2"/>
+	</clues>
+	<caption>
+		<v1 t="The underwater casino featured"/>
+	</caption>
+	<solution>
+		<s1 layout="FISH{ AND }CHIPS" a="FISHCHIPS"/>
+	</solution>
+</Jumble>

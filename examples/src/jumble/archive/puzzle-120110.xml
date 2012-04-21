@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120110"/>
+	<clues>
+		<c1 j="PRUOG" a="GROUP" circle="3,5"/>
+		<c2 j="LNAAV" a="NAVAL" circle="1,4"/>
+		<c3 j="LALTEB" a="BALLET" circle="3,4"/>
+		<c4 j="CEETFD" a="DEFECT" circle="1,4"/>
+	</clues>
+	<caption>
+		<v1 t="The flag store looked a lot like this"/>
+	</caption>
+	<solution>
+		<s1 layout="{'}POLE{-}LAND{'} " a="POLELAND"/>
+	</solution>
+</Jumble>

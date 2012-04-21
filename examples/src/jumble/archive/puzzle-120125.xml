@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120125"/>
+	<clues>
+		<c1 j="ZOYOW" a="WOOZY" circle="3"/>
+		<c2 j="WONNK" a="KNOWN" circle="1,5"/>
+		<c3 j="STHECK" a="SKETCH" circle="3,5"/>
+		<c4 j="CHUICP" a="HICCUP" circle="2,6"/>
+	</clues>
+	<caption>
+		<v1 t="He was in the market for a new banjo, so he needed to do this"/>
+	</caption>
+	<solution>
+		<s1 layout="PICK{ }ONE" a="PICKONE"/>
+	</solution>
+</Jumble>
+

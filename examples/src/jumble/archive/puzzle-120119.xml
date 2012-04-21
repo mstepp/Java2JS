@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120119"/>
+	<clues>
+		<c1 j="TONJI" a="JOINT" circle="1,2"/>
+		<c2 j="GYNIT" a="TYING" circle="1,5"/>
+		<c3 j="TOYNHR" a="THORNY" circle="2,5"/>
+		<c4 j="CRIBEK" a="BICKER" circle="1,2,4"/>
+	</clues>
+	<caption>
+		<v1 t="His new position at the medieval-themed restaurant was this"/>
+	</caption>
+	<solution>
+		<s1 layout="{HIS '}KNIGHT{' }JOB" a="KNIGHTJOB"/>
+	</solution>
+</Jumble>

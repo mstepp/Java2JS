@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120106"/>
+	<clues>
+		<c1 j="YOPPP" a="POPPY" circle="2,3,4"/>
+		<c2 j="TEANK" a="TAKEN" circle="1,3,4"/>
+		<c3 j="KICLEF" a="FICKLE" circle="2,4"/>
+		<c4 j="CIDIAC" a="ACIDIC" circle="2,6"/>
+	</clues>
+	<caption>
+		<v1 t="He would later find out that he was playing pool with one"/>
+	</caption>
+	<solution>
+		<s1 layout="{A }PICKPOCKET" a="PICKPOCKET"/>
+	</solution>
+</Jumble>
+

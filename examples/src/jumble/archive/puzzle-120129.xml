@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120129"/>
+	<clues>
+		<c1 j="JAROM" a="MAJOR" circle="2,5"/>
+		<c2 j="CYDUH" a="DUCHY" circle="3,5"/>
+		<c3 j="TUBECK" a="BUCKET" circle="4,6"/>
+		<c4 j="DARIFA" a="AFRAID" circle="1,6"/>
+	</clues>
+	<caption>
+		<v1 t="What the ex-jockey considered his railroad work"/>
+	</caption>
+	<solution>
+		<s1 layout="{A }DAY{AT THE}TRACK" a="DAYTRACK"/>
+	</solution>
+</Jumble>
+

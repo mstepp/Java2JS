@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120115"/>
+	<clues>
+		<c1 j="MUJOB" a="JUMBO" circle="3,5"/>
+		<c2 j="OBOAT" a="TABOO" circle="2,3"/>
+		<c3 j="TIPPUL" a="PULPIT" circle="1,6"/>
+		<c4 j="LARCOR" a="CORRAL" circle="1,2"/>
+	</clues>
+	<caption>
+		<v1 t="Where the shoemaker learned his craft"/>
+	</caption>
+	<solution>
+		<s1 layout="{'}BOOT{' }CAMP " a="BOOTCAMP"/>
+	</solution>
+</Jumble>

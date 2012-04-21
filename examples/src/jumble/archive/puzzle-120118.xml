@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120118"/>
+	<clues>
+		<c1 j="CALVO" a="VOCAL" circle="1,3,4"/>
+		<c2 j="RSOYR" a="SORRY" circle="2,3,4"/>
+		<c3 j="CTIERM" a="METRIC" circle="2,3"/>
+		<c4 j="TLERIP" a="TRIPLE" circle="1,3,6"/>
+	</clues>
+	<caption>
+		<v1 t="Getting a cardio workout by dancing to disco made them"/>
+	</caption>
+	<solution>
+		<s1 layout="RETRO{-}ACTIVE" a="RETROACTIVE"/>
+	</solution>
+</Jumble>
+

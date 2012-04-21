@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120120"/>
+	<clues>
+		<c1 j="SRUBT" a="BURST" circle="1,4,5"/>
+		<c2 j="RCTUK" a="TRUCK" circle="1,2,5"/>
+		<c3 j="GOEVAY" a="VOYAGE" circle="2,4,6"/>
+		<c4 j="FANYIM" a="INFAMY" circle="1,2,4"/>
+	</clues>
+	<caption>
+		<v1 t="The cleaning crew at Grand Central was enjoying a"/>
+	</caption>
+	<solution>
+		<s1 layout="STATION{ }BREAK" a="STATIONBREAK"/>
+	</solution>
+</Jumble>

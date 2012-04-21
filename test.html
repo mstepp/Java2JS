@@ -9,25 +9,130 @@
     <script type="text/javascript" src="../../../src/object.js"></script>
     <script type="text/javascript" src="../../../src/arrayobject.js"></script>
     <script type="text/javascript" src="../../../src/classloader.js"></script>
+    <script type="text/javascript" src="src/tetris3d/tetris3dnative.js"></script>
     <script type="text/javascript">
-       var stderr = null;
-       function logger(str) {
-          stderr.value += str + "\n";
-       }
-       window.onload = function() {
-         stderr = document.getElementById("stderr");
+      var scorespan;
+      function updateScore(score) {
+         while (scorespan.firstChild)
+            scorespan.removeChild(scorespan.firstChild);
+         scorespan.appendChild(document.createTextNode("Score: " + score));
+      }
+
+      window.onload = function() {
          var classloader = new DefaultURLClassLoader("http://goto.ucsd.edu/~mstepp/java2js_git/classloader.php");
-         classloader.setDocument(document);
-         classloader.setLogger(logger);
+	      classloader.setDocument(document);
          Util.setClassLoader(classloader);
-         var args = new ArrayObject(0, new ArrayType(Util.resolveClass("java.lang.String")));
-         Util.resolveClass("java2js.test.Factorial")["main([Ljava/lang/String;)V"](args);
-       };
+
+         scorespan = document.getElementById("scorespan");
+
+         var button = pojo2Element(document.getElementById("button"));
+         var updateScoreFunction = nativeFunction(updateScore);
+         var context = pojo2JSObject(document.getElementById("gamecanvas").getContext("2d"));
+
+         var tetris = Packages.tetris3d.Tetris().newInstance();
+         tetris["<init>()V"]();
+         tetris["init(Ltetris3d/Element;Ltetris3d/Function;Ltetris3d/JSObject;)V"](button, updateScoreFunction, context);
+      };
     </script>
+    <style type="text/css">
+      canvas {
+         border : 1px solid black;
+      }
+      #main {
+         width : 400px;
+         position : relative;
+      }
+      #outer {
+         width : 405px;
+         margin-left : auto;
+         margin-right : auto;
+      }
+      div {
+         text-align : center;
+      }
+      #scorespan {
+         margin-left : 10px;
+      }
+      #buttonpane {
+         position : relative;
+         height : 30px;
+      }
+      #leftpane {
+         position : absolute;
+         top : 0px;
+         left : 0px;
+         width : 50%;
+         height : 100%;
+      }
+      #rightpane {
+         position : absolute;
+         top : 0px;
+         right : 0px;
+         width : 50%;
+         height : 100%;
+      }
+      #diepanel {
+         visibility : hidden;
+         position : absolute;
+         width : 400px;
+         height : 317px;
+         top : 50px;
+         left : 1px;
+         z-index : 5;
+      }
+      #loadpanel {
+         visibility : visible;
+         position : absolute;
+         width : 450px;
+         height : 158px;
+         top : 100px;
+         left : -25px;
+         z-index : 5;
+      }
+      #instructions {
+         text-align : left;
+         width : 400px;
+         margin-left : auto;
+         margin-right : auto;
+         font-size : 10pt;
+      }
+      .key {
+         font-weight : bold;
+         font-face : courier;
+      }
+      body {
+         background-color : lightgray;
+      }
+    </style>
   </head>
   <body>
-    Testing...
-    <br/><textarea id="stdout" rows="10" cols="50"></textarea>
-    <br/><textarea id="stderr" rows="10" cols="50"></textarea>
+    <div id="outer">
+      <div id="main">
+        <div id="diepanel"><img alt="You died!" src="src/tetris3d/die.jpg"/></div>
+        <div id="loadpanel"><img alt="Loading..." src="src/tetris3d/logo.jpg"></div>
+        <canvas id="gamecanvas" width="400" height="400"></canvas>
+      </div>
+      <div id="buttonpane">
+        <div id="leftpane"><span><input type="button" id="button" value="Start"/></span></div>
+        <div id="rightpane"><span id="scorespan">Score:</span></div>
+      </div>
+    </div>
+
+    <div id="instructions">
+      <h2>Tetris</h2>
+      <p>
+        This game operates with keyboard commands:</br>
+        <span class="key">A</span>:  Rotate the world clockwise<br/>
+        <span class="key">S</span>:  Rotate the world counter-clockwise<br/>
+        <span class="key">LEFT</span>:  Move the current piece in the -X direction</br>
+        <span class="key">RIGHT</span>:  Move the current piece in the +X direction</br>
+        <span class="key">UP</span>:  Move the current piece in the +Y direction</br>
+        <span class="key">DOWN</span>:  Move the current piece in the -Y direction</br>
+        <span class="key">SPACE</span>:  Move the current piece downward (-Z direction)</br>
+        <span class="key">Z</span>:  Rotate the current piece in the XY plane</br>
+        <span class="key">X</span>:  Rotate the current piece in the YZ plane</br>
+      </p>
+    </div>
+    <div><a href="../index.html">Back</div>
   </body>
 </html>

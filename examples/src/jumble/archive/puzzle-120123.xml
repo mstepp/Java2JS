@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120123"/>
+	<clues>
+		<c1 j="WROBN" a="BROWN" circle="2,4"/>
+		<c2 j="TURYL" a="TRULY" circle="1,5"/>
+		<c3 j="PHENAP" a="HAPPEN" circle="2,4"/>
+		<c4 j="PRAILS" a="SPIRAL" circle="1,5"/>
+	</clues>
+	<caption>
+		<v1 t="The owners of the auto supply store weren't getting along and needed to do this"/>
+	</caption>
+	<solution>
+		<s1 layout="PART{ }WAYS" a="PARTWAYS"/>
+	</solution>
+</Jumble>

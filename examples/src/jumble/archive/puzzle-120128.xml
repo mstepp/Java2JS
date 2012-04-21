@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120128"/>
+	<clues>
+		<c1 j="KNBIR" a="BRINK" circle="2,3,4"/>
+		<c2 j="TLORL" a="TROLL" circle="1,2,4"/>
+		<c3 j="ONNTED" a="TENDON" circle="1,2,3"/>
+		<c4 j="ASPUDE" a="PAUSED" circle="1,2,4,5"/>
+	</clues>
+	<caption>
+		<v1 t="The mime wanted to expand his business and was looking for a"/>
+	</caption>
+	<solution>
+		<s1 layout="SILENT{ }PARTNER" a="SILENTPARTNER"/>
+	</solution>
+</Jumble>

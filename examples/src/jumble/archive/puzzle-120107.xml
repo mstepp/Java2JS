@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120107"/>
+	<clues>
+		<c1 j="NYUIT" a="UNITY" circle="1,4"/>
+		<c2 j="DPEPU" a="UPPED" circle="2,3,4"/>
+		<c3 j="ASCOIF" a="FIASCO" circle="2,4"/>
+		<c4 j="FUWREC" a="CURFEW" circle="1,2,3"/>
+	</clues>
+	<caption>
+		<v1 t="He planted the new evergreen in his yard to"/>
+	</caption>
+	<solution>
+		<s1 layout="SPRUCE{ }IT{ }UP" a="SPRUCEITUP"/>
+	</solution>
+</Jumble>

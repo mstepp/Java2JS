@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120205"/>
+	<clues>
+		<c1 j="TYIED" a="DEITY" circle="3,4"/>
+		<c2 j="LAWTZ" a="WALTZ" circle="1,2"/>
+		<c3 j="ATTRYN" a="TYRANT" circle="3,5"/>
+		<c4 j="KOHOED" a="HOOKED" circle="1,5"/>
+	</clues>
+	<caption>
+		<v1 t="What balding jokes do after a while"/>
+	</caption>
+	<solution>
+		<s1 layout="WEAR{ '}THIN{'}" a="WEARTHIN"/>
+	</solution>
+</Jumble>

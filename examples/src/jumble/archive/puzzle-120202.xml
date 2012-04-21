@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120202"/>
+	<clues>
+		<c1 j="BOMOL" a="BLOOM" circle="1,3,4"/>
+		<c2 j="CATHW" a="WATCH" circle="1,5"/>
+		<c3 j="FUSYTF" a="STUFFY" circle="1,2,3"/>
+		<c4 j="DMAYID" a="MIDDAY" circle="3,4,5"/>
+	</clues>
+	<caption>
+		<v1 t="The groundhog made his prediction without a"/>
+	</caption>
+	<solution>
+		<s1 layout="SHADOW{ OF A }DOUBT" a="SHADOWDOUBT"/>
+	</solution>
+</Jumble>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120126"/>
+	<clues>
+		<c1 j="CAMAW" a="MACAW" circle="3,4"/>
+		<c2 j="HOEUS" a="HOUSE" circle="3,4,5"/>
+		<c3 j="ROERRT" a="TERROR" circle="3,5,6"/>
+		<c4 j="CSHRCO" a="SCORCH" circle="1,2,6"/>
+	</clues>
+	<caption>
+		<v1 t="The student driver was leery of this type of driving instruction"/>
+	</caption>
+	<solution>
+		<s1 layout="{A }CRASH{ }COURSE" a="CRASHCOURSE"/>
+	</solution>
+</Jumble>

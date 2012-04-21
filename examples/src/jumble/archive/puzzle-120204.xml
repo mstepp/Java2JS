@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120204"/>
+	<clues>
+		<c1 j="DOEMV" a="MOVED" circle="1,4"/>
+		<c2 j="SLEML" a="SMELL" circle="1,4,5"/>
+		<c3 j="NXEOGY" a="OXYGEN" circle="5,6"/>
+		<c4 j="CABUSA" a="ABACUS" circle="1,3"/>
+	</clues>
+	<caption>
+		<v1 t="Once you've looked at one shopping center, you've"/>
+	</caption>
+	<solution>
+		<s1 layout="SEEN{ }A{ }MALL" a="SEENAMALL"/>
+	</solution>
+</Jumble>

@@ -1,0 +1,43 @@
+<html><head><title>Sequence!</title></head>
+<body>
+<center>
+
+<table>
+	<tr>
+		<td valign=center width=250>
+			<center><font face="Comic Sans MS" size=6><b>Sequence!</b></font></center><br>
+			<font face="Comic Sans MS" size=1><b>Rules:</b><br>
+			In this game you are dealt 5 cards from the deck
+			and you use them to cover up squares on the game board
+			with your tiles (black). You try to get runs of 5 of your
+			tiles in a row, and if you get 3 such runs then you win
+			the game. Gameplay progresses by playing a card, placing/removing
+			the appropriate tiles from the board, and then drawing a new card.
+			After each of your plays the computer will play, using his tiles (<font color="red">red</font>).
+			If you play a card that is not a Jack, you must then place one of your
+			tiles on the board on a square that corresponds to the card you picked.
+			If you play a Jack, then you can do one of 2 things:<br>
+			1) You can place a tile on any unused square on the board.<br>
+			2) You can remove one of the computer's tiles that has not been frozen.<br>
+			If you make a run of 5 tiles in a row (horizontally, vertically, or diagonally),
+			then those tiles form a sequence and the tiles in that sequence
+			are frozen. This means that they cannot be removed by your opponent playing a Jack.
+			While forming a sequence requires 5 tiles in a row, no sequence can intersect
+			another already-formed sequence by more than 1 tile. It may intersect multiple other
+			sequences, but it can have at most one tile from any other sequence in itself.
+
+			</font>
+		</td>
+		<td>
+			<applet code="SequenceApplet.class" width=435 height=565></applet>
+		</td>
+	<tr>
+</table>
+</center>
+
+<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+</script>
+<script type="text/javascript">
+_uacct = "UA-2752641-1";
+urchinTracker();
+</script></body></html>

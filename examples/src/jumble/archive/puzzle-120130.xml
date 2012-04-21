@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120130"/>
+	<clues>
+		<c1 j="GABGY" a="BAGGY" circle="2"/>
+		<c2 j="SRAHH" a="HARSH" circle="2,4"/>
+		<c3 j="DPLUED" a="PUDDLE" circle="3,4,6"/>
+		<c4 j="OLEEPP" a="PEOPLE" circle="2"/>
+	</clues>
+	<caption>
+		<v1 t="The zombies liked the house due to its proximity to the"/>
+	</caption>
+	<solution>
+		<s1 layout="DEAD{ }SEA" a="DEADSEA"/>
+	</solution>
+</Jumble>
+

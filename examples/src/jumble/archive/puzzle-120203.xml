@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120203"/>
+	<clues>
+		<c1 j="GRADU" a="GUARD" circle="3,5"/>
+		<c2 j="LIGYN" a="LYING" circle="3,4"/>
+		<c3 j="VURSYE" a="SURVEY" circle="1"/>
+		<c4 j="TNEADT" a="ATTEND" circle="2,3"/>
+	</clues>
+	<caption>
+		<v1 t="When no one showed up to buy her lemonade, she couldn't"/>
+	</caption>
+	<solution>
+		<s1 layout="STAND{ }IT" a="STANDIT"/>
+	</solution>
+</Jumble>

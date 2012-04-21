@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Jumble>
+	<Date v="120103"/>
+	<clues>
+		<c1 j="CLUMH" a="MULCH" circle="2,4"/>
+		<c2 j="EAVOB" a="ABOVE" circle="3,5"/>
+		<c3 j="FUIMNF" a="MUFFIN" circle="1,2,5"/>
+		<c4 j="SLOENS" a="LESSON" circle="1,3,4"/>
+	</clues>
+	<caption>
+		<v1 t="When the singer performed in the capital of South Korea, she sang this"/>
+	</caption>
+	<solution>
+		<s1 layout="{'}SEOUL{' }MUSIC " a="SEOULMUSIC"/>
+	</solution>
+</Jumble>
