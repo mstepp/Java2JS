@@ -66,11 +66,11 @@ public class bezier {
    }
 
    public void redraw() {
-       animator.clear();
-       animator.setColor(255, 0, 0);
+      animator.clear();
+      animator.setColor(255, 0, 0);
        
-       for (BezierCurve curve : curves) {
-	   curve.draw(animator);
-       }
+      for (BezierCurve curve : curves) {
+         curve.draw(animator);
+      }
    }
 }

@@ -34,7 +34,7 @@ public class PrettyPrinter {
             printer.printf("%d", expr.index());
             break;
          case LAMBDA:
-            printer.printf("(\\. ");
+            printer.printf("(\\ ");
             print(printer, expr.child());
             printer.printf(")");
             break;

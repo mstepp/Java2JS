@@ -175,7 +175,7 @@ public class Expression {
          break;
 
       case LAMBDA:
-         printer.printf("(&lambda; ");
+         printer.printf("(\\ ");
          this.child.dump(printer);
          printer.printf(")");
          break;

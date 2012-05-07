@@ -20,6 +20,9 @@ public class JSObject {
    public static native JSObject fromFunction(JSFunction f);
    public static native JSObject fromArray(JSObject[] array);
    public static native JSObject empty();
+   public static native JSObject newInstance(JSObject constructor, JSObject... params);
+   public static native JSObject newInstance(String classname, JSObject... params);
+   public static native JSObject globalObject(String name);
 
    public static native void setTimeout(JSFunction func, int ms);
 }

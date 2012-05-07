@@ -8,6 +8,7 @@ public class Animator {
       assignContextPojo();
    }
 
+   public native void setTimeout(Runnable runnable, int timeout);
    private native void assignContextPojo();
    public native void clear();
    public native void setColor(int r, int g, int b);

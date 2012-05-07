@@ -1,5 +1,7 @@
 package lambda;
 
+import java.util.*;
+
 public class Functions {
    public static final Expression ONE = new Expression(1);
    public static final Expression TWO = new Expression(2);
@@ -39,14 +41,21 @@ public class Functions {
    */
    public static final Expression TAKE = L(L(A(CAR, A(TWO, TAKEHELPER, A(CONS, L(ONE), ONE)), NIL)));
    // \n.\list.CAR (n HELPER (CONS (\x.x) list)) NIL
-    
+
+   private static final Map<Integer,Expression> cache = new HashMap<Integer,Expression>();
    public static final Expression N(int n) {
-      Expression body = ONE;
-      while (n > 0) {
-         body = new Expression(TWO, body);
-         n--;
+      if (cache.containsKey(n)) {
+         return cache.get(n);
+      } else {
+         Expression body = ONE;
+         while (n > 0) {
+            body = new Expression(TWO, body);
+            n--;
+         }
+         body = L(L(body));
+         cache.put(n, body);
+         return body;
       }
-      return L(L(body));
    }
 
    public static final Expression A(Expression... ops) {

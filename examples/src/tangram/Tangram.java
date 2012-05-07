@@ -187,7 +187,7 @@ public class Tangram {
 
    ////////////////////////////
    private Piece[] PIECES;
-   //   var selected = null;
+   private JSObject selected = null;
    private int selectedDX, selectedDY;
 
    //////////////////////////
@@ -200,7 +200,7 @@ public class Tangram {
       else if (width = window.document.body.clientWidth) {}
       else throw "No width attribute to be found!";
       
-      var maindiv = $("maindiv");
+      var maindiv = Util.$("maindiv");
       MAIN_X = Math.floor((width-MAIN_WIDTH)/2);
       maindiv.style.left = MAIN_X + "px";
       
@@ -210,72 +210,75 @@ public class Tangram {
    }
 
    private void setStatus(String str) {
-      Element status = $("status");
+      Element status = Util.$("status");
       while (status.getProperty("firstChild").asBoolean())
          status.invokeMethod("removeChild", status.getProperty("firstChild"));
       status.appendChild(Util.createTextNode(str));
    }
    
-   private Point getCoords(JSObject e) {
+   private Point getCoords(JSObject event) {
       if (e.hasProperty("pageX")) {
          return new Point(e.getProperty("pageX").asNumber().intValue(), 
                           e.getProperty("pageY").asNumber().intValue());
       } else {
          // when using strict doctype, need document.documentElement.*,
          // otherwise it would be document.body.*
-         // TODO return {x:e.clientX + document.documentElement.scrollLeft,
-         // TODO y:e.clientY + document.documentElement.scrollTop};
+         JSObject document = JSObject.globalObject("document");
+         return new Point(event.getProperty("clientX").asNumber().intValue() +
+                          document.getProperty("documentElement").getProperty("scrollLeft").asNumber().intValue(),
+                          event.getProperty("clientY").asNumber().intValue() + 
+                          document.getProperty("documentElement").getProperty("scrollTop").asNumber().intValue());
       }
    }
    
-function myMouseDown(e) {
-   if (STATE != PLAYING_STATE)
-      return true;
-   if (!e) var e = window.event;
-
-   // find if any was clicked
-   var clickedPiece = null;
-
-   for (var i = 0; i < PIECES.length; i++) {
-      var piece = PIECES[i];
-      var coords = getCoords(e);
-      var relative = {x:(coords.x-(MAIN_X+50)-piece.x),
-                      y:(coords.y-(MAIN_Y+50)-piece.y)};
-      var mydata = type2data[piece.type][piece.orient];
-      if (mydata.points.length == 3) {
-         // 3 points
-         if (inTriangle(mydata.points[0], mydata.points[1], 
-                        mydata.points[2], relative)) {
-            clickedPiece = piece;
-            break;
-         } else {
-            continue;
+   private EventCallback myMouseDown = new EventCallback() {
+         public boolean onevent(Element source, JSObject event) {
+            if (STATE != PLAYING_STATE)
+               return true;
+            // find if any was clicked
+            Piece clickedPiece = null;
+            
+            for (int i = 0; i < PIECES.length; i++) {
+               Piece piece = PIECES[i];
+               Point coords = getCoords(e);
+               Point relative = new Point(coords.x-(MAIN_X+50)-piece.x,
+                                          coords.y-(MAIN_Y+50)-piece.y);
+               PieceInfo mydata = type2data[piece.type][piece.orient];
+               if (mydata.points.length == 3) {
+                  // 3 points
+                  if (Util.inTriangle(mydata.points[0], mydata.points[1], 
+                                      mydata.points[2], relative)) {
+                     clickedPiece = piece;
+                     break;
+                  } else {
+                     continue;
+                  }
+               } else {
+                  // 4 points
+                  if (Util.inTriangle(mydata.points[0], mydata.points[1], mydata.points[2], relative) ||
+                      Util.inTriangle(mydata.points[2], mydata.points[3], mydata.points[0], relative)) {
+                     clickedPiece = piece;
+                     break;
+                  } else {
+                     continue;
+                  }
+               }
+            }
+            if (!clickedPiece)
+               return false;
+            
+            if (selected != null)
+               selected.div.style.zIndex = DOWN_ZINDEX;
+            
+            selected = clickedPiece;
+            selectedDX = relative.x;
+            selectedDY = relative.y;
+            selected.div.style.zIndex = DRAGGING_ZINDEX;
+            
+            return false;
          }
-      } else {
-         // 4 points
-         if (inTriangle(mydata.points[0], mydata.points[1], mydata.points[2], relative) ||
-             inTriangle(mydata.points[2], mydata.points[3], mydata.points[0], relative)) {
-            clickedPiece = piece;
-            break;
-         } else {
-            continue;
-         }
-      }
-   }
-   if (!clickedPiece)
-      return false;
-
-   if (selected != null)
-      selected.div.style.zIndex = DOWN_ZINDEX;
-
-   selected = clickedPiece;
-   selectedDX = relative.x;
-   selectedDY = relative.y;
-   selected.div.style.zIndex = DRAGGING_ZINDEX;
-
-   return false;
-}
-
+      };
+         
 function myMouseUp(e) {
    if (STATE != PLAYING_STATE)
       return true;
@@ -310,18 +313,18 @@ function myMouseUp(e) {
    return false;
 }
 
-   function myMouseMove(e) {
-      if (STATE != PLAYING_STATE)
-         return true;
-      if (!e) var e = window.event;
-      
-      if (selected == null)
-         return true;
-      var coords = getCoords(e);
-      selected.setX(coords.x-(MAIN_X+50)-selectedDX);
-      selected.setY(coords.y-(MAIN_Y+50)-selectedDY);
-      return false;
-   }
+   private EventCallback myMouseMove = new EventCallback() {
+         public boolean Onevent(Element source, JSObject event) {
+            if (STATE != PLAYING_STATE)
+               return true;
+            if (selected == null)
+               return true;
+            Point coords = getCoords(e);
+            selected = new Point(coords.x-(MAIN_X+50)-selectedDX,
+                                 coords.y-(MAIN_Y+50)-selectedDY);
+            return false;
+         }
+      };
 
 function myKeyDown(e) {
    if (STATE != PLAYING_STATE)
@@ -366,7 +369,7 @@ function myKeyDown(e) {
 
    private void win() {
       STATE = WON_STATE;
-      $("windiv").setStyle("visibility", "visible");
+      Util.$("windiv").setStyle("visibility", "visible");
    }
 
    function parsePuzzle(url) {
@@ -435,7 +438,7 @@ function myKeyDown(e) {
    private void setVisibility(String visibility) {
       String[] toHide = {"smalldiv0", "smalldiv1", "mediumdiv", "diamonddiv", "squarediv", "largediv0", "largediv1"};
       for (int i = 0; i < toHide.length; i++) {
-         $(toHide[i]).setStyle("visibility", visibility);
+         Util.$(toHide[i]).setStyle("visibility", visibility);
       }
    }
 
@@ -449,7 +452,7 @@ function myKeyDown(e) {
       
       PUZZLE = puzzle;
       
-      Element puzzlediv = $("puzzlediv");
+      Element puzzlediv = Util.$("puzzlediv");
       while (puzzlediv.getProperty("firstChild").asBoolean())
          puzzlediv.invokeMethod("removeChild", puzzlediv.getProperty("firstChild"));
       
@@ -467,56 +470,56 @@ function myKeyDown(e) {
       }
       
       setVisibility("visible");
-      $("windiv").setStyle("visibility", "hidden");
+      Util.$("windiv").setStyle("visibility", "hidden");
       
       STATE = PLAYING_STATE;
    }
 
    void goButtonClick() {
-      int index = $("puzzleselector").getProperty("selectedIndex").asNumber().intValue();
-      $("gobutton").invokeMethod("blur");
+      int index = Util.$("puzzleselector").getProperty("selectedIndex").asNumber().intValue();
+      Util.$("gobutton").invokeMethod("blur");
       loadPuzzle(index+1);
    }
 
-function init() {
-   PIECES = new Array();
-   PIECES.push(new Piece($("smalldiv0"),SMALL_TYPE));
-   PIECES.push(new Piece($("smalldiv1"),SMALL_TYPE));
-   PIECES.push(new Piece($("mediumdiv"),MEDIUM_TYPE));
-   PIECES.push(new Piece($("diamonddiv"),DIAMOND_TYPE));
-   PIECES.push(new Piece($("squarediv"),SQUARE_TYPE));
-   PIECES.push(new Piece($("largediv0"),LARGE_TYPE));
-   PIECES.push(new Piece($("largediv1"),LARGE_TYPE));
-
-   // preload images
-   for (var i = 0; i < NUM_PIECE_TYPES; i++) {
-      for (var j = 0; j < NUM_ORIENTS; j++) {
-         var img = new Image();
-         img.src = type2data[i][j].url;
+   private void init() {
+      PIECES = new Piece[7];
+      PIECES[0] = new Piece(Util.$("smalldiv0"),SMALL_TYPE);
+      PIECES[1] = new Piece(Util.$("smalldiv1"),SMALL_TYPE);
+      PIECES[2] = new Piece(Util.$("mediumdiv"),MEDIUM_TYPE);
+      PIECES[3] = new Piece(Util.$("diamonddiv"),DIAMOND_TYPE);
+      PIECES[4] = new Piece(Util.$("squarediv"),SQUARE_TYPE);
+      PIECES[5] = new Piece(Util.$("largediv0"),LARGE_TYPE);
+      PIECES[6] = new Piece(Util.$("largediv1"),LARGE_TYPE);
+      
+      // preload images
+      for (int i = 0; i < NUM_PIECE_TYPES; i++) {
+         for (int j = 0; j < NUM_ORIENTS; j++) {
+            JSObject img = JSObject.newInstance("Image");
+            img.setProperty("src", JSObject.fromString(type2data[i][j].url));
+         }
       }
+      
+      Util.$("boarddiv").setProperty("onmousemove", myMouseMove;
+      Util.$("boarddiv").onmouseup = myMouseUp;
+      Util.$("boarddiv").onmousedown = myMouseDown;
+      Util.$("gobutton").onclick = goButtonClick;
+      
+      var selector = Util.$("puzzleselector");
+      while (selector.firstChild)
+         selector.removeChild(selector.firstChild);
+      for (var i = 0; i < NUM_PUZZLES; i++) {
+         var option = document.createElement("OPTION");
+         option.appendChild(document.createTextNode("Puzzle " + (i+1)));
+         selector.appendChild(option);
+      }
+      
+      centerMain();
+      STATE = LOADING_STATE;
+      
+      var index = Math.floor(Math.random()*NUM_PUZZLES);
+      selector.selectedIndex = index;
+      loadPuzzle(1+index);
    }
-
-   $("boarddiv").onmousemove = myMouseMove;
-   $("boarddiv").onmouseup = myMouseUp;
-   $("boarddiv").onmousedown = myMouseDown;
-   $("gobutton").onclick = goButtonClick;
-
-   var selector = $("puzzleselector");
-   while (selector.firstChild)
-      selector.removeChild(selector.firstChild);
-   for (var i = 0; i < NUM_PUZZLES; i++) {
-      var option = document.createElement("OPTION");
-      option.appendChild(document.createTextNode("Puzzle " + (i+1)));
-      selector.appendChild(option);
-   }
-
-   centerMain();
-   STATE = LOADING_STATE;
-
-   var index = Math.floor(Math.random()*NUM_PUZZLES);
-   selector.selectedIndex = index;
-   loadPuzzle(1+index);
-}
 
 
 
@@ -527,5 +530,167 @@ function init() {
    if (document.attachEvent)
       document.attachEvent("onkeydown", myKeyDown);
    */
+
+
+
+
+         private class Piece {
+            private Element div;
+            private int orient, x, y, type;
+            
+            public Piece(Element div, int type) {
+               this.div = div;
+               this.type = type;
+               this.orient = 0;
+               this.x = 0; // this is the left of the DIV within the board
+               this.y = 0; // this is the top of the DIV within the board
+            }
+            
+            public Element getDiv() {return this.div;}
+            public int getOrient() {return this.orient;}
+            public int getX() {return this.x;}
+            public int getY() {return this.y;}
+            public int getType() {return this.type;}
+
+            /* Return value will be a {x,y} or null.
+               If not null, then it means that there is some
+               vector P such that for each of this piece's
+               critical points C, C+P is a puzzle point.
+               (i.e. this piece is oriented right but translated wrong)
+            */
+            public boolean isInPlace() {
+               if (STATE != PLAYING_STATE)
+                  return false;
+               
+               // relative to PUZZLE_X and PUZZLE_Y
+               var mypoints = [];
+               var mydata = type2data[this.type][this.orient];
+               // clone the points
+               for (var i = 0; i < mydata.points.length; i++) {
+                  mypoints.push({x:mydata.points[i].x,
+                           y:mydata.points[i].y});
+               }
+               if ("extra" in mydata) {
+                  for (var i = 0; i < mydata.extra.length; i++) {
+                     mypoints.push({x:mydata.extra[i].x,
+                              y:mydata.extra[i].y});
+                  }
+               }
+               
+               // translate the points
+               for (var i = 0; i < mypoints.length; i++) {
+                  mypoints[i].x = mypoints[i].x + this.x - PUZZLE_X;
+                  mypoints[i].y = mypoints[i].y + this.y - PUZZLE_Y;
+               }
+               
+               // test for inplaceness
+               var foundAll = true;
+               var offsets = [];
+               for (var i = 0; i < mypoints.length; i++) {
+                  var myoffset = {};
+                  offsets.push(myoffset);
+                  for (var j = 0; j < PUZZLE.points.length; j++) {
+                     var dx = PUZZLE.points[j].x - mypoints[i].x;
+                     var dy = PUZZLE.points[j].y - mypoints[i].y;
+                     var str = "[" + dx + "," + dy + "]";
+                     myoffset[str] = {x:dx,y:dy};
+                  }
+               }
+               
+               // check for offset of [0,0] in all
+               var foundAll = true;
+               for (var i = 0; i < offsets.length; i++) {
+                  if (!("[0,0]" in offsets[i])) {
+                     foundAll = false;
+                     break;
+                  }
+               }
+               if (foundAll)
+                  return {x:0,y:0};
+               
+               // not in place, check for same offset in all
+               var validOffsets = [];
+               for (var offset in offsets[0]) {
+                  foundAll = true;
+                  for (var i = 1; i < offsets.length; i++) {
+                     if (!(offset in offsets[i])) {
+                        foundAll = false;
+                        break;
+                     }
+                  }
+                  if (foundAll) 
+                     validOffsets.push(offsets[0][offset]);
+               }
+               if (validOffsets.length == 0)
+                  return null;
+               
+               var best = validOffsets[0];
+               var bestmag = magnitude(best);
+               for (var i = 1; i < validOffsets.length; i++) {
+                  var newmag = magnitude(validOffsets[i]);
+                  if (newmag < bestmag) {
+                     best = validOffsets[i];
+                     bestmag = newmag;
+                  }
+               }
+               return best;
+            }
+            
+   public void randomize() {
+      PieceInfo mywidth = type2data[this.type][this.orient].width;
+      var myheight = type2data[this.type][this.orient].height;
+      this.setX(Math.floor(Math.random()*(BOARD_WIDTH-mywidth)));
+      this.setY(Math.floor(Math.random()*(BOARD_HEIGHT-myheight)));
+      this.setOrient(Math.floor(Math.random()*NUM_ORIENTS));
+   }
+   
+   public void setOrient(int orient) {
+      this.orient = orient;
+      var mydata = type2data[this.type][this.orient];
+      this.div.style.width = mydata.width + "px";
+      this.div.style.height = mydata.height + "px";
+      var img = document.createElement("IMG");
+      img.src = mydata.url;
+      while (this.div.firstChild)
+         this.div.removeChild(this.div.firstChild);
+      this.div.appendChild(img);
+   }
+
+      Piece.prototype.rotate = function() {
+         this.setOrient((this.orient+1)%NUM_ORIENTS);
+      }
+
+   public Point transformGrab(Point grab) {
+      // takes an {x,y} that is inside the current shape
+      // and returns a corresponding {x,y} that is the same
+      // points in the rotated shape (each point will be 
+      // relative to its own img's {0,0}.
+      // Precondition: grab is inside the current shape, 
+      //    coordinates of grab are relative to the shape's div
+      // Postcondition: result will be for the next orientation (o+1),
+      //    coordinates will be relative to that shape's div
+      
+      var mydata = type2data[this.type][this.orient];
+      var C1 = Util.subtract(grab, mydata.points[0]);
+      var cosN45 = Util.sqrt(2.0)/2.0;
+      var sinN45 = -cosN45;
+      
+      Point C2 = new Point((C1.x*cosN45 - C1.y*sinN45), (C1.x*sinN45 + C1.y*cosN45));
+      
+      var newdata = type2data[this.type][(this.orient+1)%NUM_ORIENTS];
+      Point result = Util.add(newdata.points[0],C2);
+      return result;
+   }
+
+   public void setX(int x) {
+      this.x = x;
+      this.div.setStyle("left", this.x + "px");
+   }
+
+   public void setY(int y) {
+      this.y = y;
+      this.div.setStyle("top"m this.y + "px");
+   }
+}
 
 }

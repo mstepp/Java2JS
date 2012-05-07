@@ -498,13 +498,8 @@ public class InstructionCompiler {
          pop("obj");
          assertNonNull("obj");
 
-         boolean supercall = false;
          ReferenceType type = invoke.getReferenceType(cpg);
          ObjectType mysupertype = new ObjectType(this.classgen.getSuperclassName());
-         if (type.equals(mysupertype)) {
-            // super call
-            supercall = true;
-         }
          if (type instanceof ArrayType) {
             type = Type.OBJECT;
          }
@@ -513,22 +508,13 @@ public class InstructionCompiler {
 
          boolean returns = !returnType.equals(Type.VOID);
          String argstr = getArgStr(args.length);
-         if (supercall) {
-            // write out super call
-            if (returns) {
-               println("var result = %s.prototype[\"%s\"].apply(obj, [%s]);", 
-                       Compiler.resolve(((INVOKESPECIAL)inst).getReferenceType(cpg).toString()), munged, argstr);
-            } else {
-               println("%s.prototype[\"%s\"].apply(obj, [%s]);", 
-                       Compiler.resolve(((INVOKESPECIAL)inst).getReferenceType(cpg).toString()), munged, argstr);
-            }
+         // write out super call
+         if (returns) {
+            println("var result = %s.prototype[\"%s\"].apply(obj, [%s]);", 
+                    Compiler.resolve(((INVOKESPECIAL)inst).getReferenceType(cpg).toString()), munged, argstr);
          } else {
-            // write out the call
-            if (returns) {
-               println("var result = obj[\"%s\"](%s);", munged, argstr);
-            } else {
-               println("obj[\"%s\"](%s);", munged, argstr);
-            }
+            println("%s.prototype[\"%s\"].apply(obj, [%s]);", 
+                    Compiler.resolve(((INVOKESPECIAL)inst).getReferenceType(cpg).toString()), munged, argstr);
          }
 
          if (returnType.equals(Type.DOUBLE) || returnType.equals(Type.LONG)) {

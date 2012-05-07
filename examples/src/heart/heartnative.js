@@ -22,3 +22,10 @@ Util.register_native("heart.Animator", "drawLine(IIII)V",
                         this.context.lineTo(x2.toJS(), y2.toJS());
                         this.context.stroke();
                      });
+
+Util.register_native("heart.Animator", "setTimeout(Ljava/lang/Runnable;I)V",
+                     function(runnable, timeout) {
+                        window.setTimeout(function() {
+                              runnable["run()V"]();
+                           }, timeout.toJS());
+                     });
